@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&family=Inter:wght@400;700;800&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .logo-wrapper { position: relative; display: inline-block; cursor: pointer; }
+        .dove-logo { 
+            position: absolute; top: -15px; left: 0; 
+            color: rgba(96, 165, 250, 0.5); 
+            font-size: 35px; transform: rotate(-15deg); z-index: 10;
+        }
+        .alert-custom { background-color: #fffbeb; border: 1px solid #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-6">
+
+    <nav class="w-full max-w-5xl flex justify-center mb-8 mt-4">
+        <div class="logo-wrapper" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-logo"></i>
+            <div class="text-3xl font-[950] text-blue-900 italic uppercase relative z-20">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-md w-full bg-white rounded-[40px] p-8 shadow-2xl border border-slate-50 text-center">
+        
+        <div class="w-24 h-24 bg-[#e6fcf0] text-[#22c55e] rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+            <i class="fas fa-check-double"></i>
+        </div>
+        
+        <h1 class="text-3xl font-black uppercase italic text-slate-900 mb-4 font-inter">DEMANDE REÇUE !</h1>
+        <p class="text-slate-500 text-base font-medium leading-relaxed mb-8">
+            Votre demande est enregistrée. L'un de nos agents vous contactera sous peu.
+        </p>
+
+        <div class="alert-custom p-5 rounded-[2rem] text-left mb-8 flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle mt-1"></i>
+            <p class="text-[12px] font-black leading-tight uppercase tracking-tight">
+                VEUILLEZ RÉGLER LES FRAIS POUR ÉVITER TOUT RETARD DANS LE TRAITEMENT.
+            </p>
+        </div>
+
+        <div class="bg-slate-50 border-2 border-dashed border-slate-200 p-5 rounded-3xl mb-6">
+            <p class="text-[10px] text-slate-400 uppercase font-black mb-1 tracking-widest">RÉFÉRENCE DE VOTRE DOSSIER</p>
+            <p id="displayRef" class="text-2xl font-[950] text-blue-900 tracking-widest">----------</p>
+        </div>
+
+        <div id="infoSection" class="text-left space-y-4 mb-8">
+            </div>
+
+        <div class="space-y-4">
+            <button onclick="sendToWhatsApp()" class="w-full flex items-center justify-center gap-3 bg-[#25d366] text-white py-5 rounded-[2rem] font-black uppercase text-xs shadow-xl hover:scale-105 transition-all">
+                <i class="fab fa-whatsapp text-2xl"></i> Envoyer le reçu de paiement
+            </button>
+
+            <button onclick="location.href='index.html'" class="w-full text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] hover:text-blue-900 transition">
+                <i class="fas fa-home mr-1"></i> Retour à l'accueil
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const bookingData = JSON.parse(localStorage.getItem('finalOrder'));
+        const phone = "213657133118";
+
+        window.onload = () => {
+            if (!bookingData) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            document.getElementById('displayRef').innerText = bookingData.reference;
+            const method = bookingData.method;
+            const infoSection = document.getElementById('infoSection');
+
+            // إعداد معلومات الـ CCP (تظهر في الحالتين)
+            const ccpInfo = `
+                <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                    <p class="text-[11px] text-blue-800 font-bold mb-2">💳 Paiement via BaridiMob / CCP:</p>
+                    <div class="text-[10px] text-blue-900 space-y-1 font-medium">
+                        <p><strong>CCP:</strong> 0023456789 (45)</p>
+                        <p><strong>RIP:</strong> 00799999002345678912</p>
+                    </div>
+                </div>
+            `;
+
+            // إعداد معلومات الوكالة
+            const agenceInfo = `
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p class="text-[11px] text-slate-800 font-bold mb-1 italic">📍 Siège Social:</p>
+                    <p class="text-[10px] text-slate-600 leading-relaxed font-medium">
+                        Lotissement Haniche ilots 93, Bordj Bou Arreridj, Algérie.
+                    </p>
+                </div>
+            `;
+
+            if (method === 'agence') {
+                // إذا اختار الوكالة: نعرض الوكالة أولاً ثم الـ CCP كخيار إضافي
+                infoSection.innerHTML = `
+                    <div class="flex justify-between items-center px-2"><span class="text-[9px] font-black text-gray-400 uppercase">Option Choisie:</span><span class="text-[10px] font-bold text-blue-900">AU BUREAU</span></div>
+                    ${agenceInfo}
+                    <div class="relative py-2 flex items-center justify-center">
+                        <span class="absolute bg-white px-2 text-[8px] text-gray-400 font-bold uppercase">Ou bien</span>
+                        <div class="w-full h-[1px] bg-gray-100"></div>
+                    </div>
+                    ${ccpInfo}
+                `;
+            } else {
+                // إذا اختار CCP: نعرض الـ CCP فقط
+                infoSection.innerHTML = `
+                    <div class="flex justify-between items-center px-2"><span class="text-[9px] font-black text-gray-400 uppercase">Option Choisie:</span><span class="text-[10px] font-bold text-pink-600">BARIDIMOB / CCP</span></div>
+                    ${ccpInfo}
+                `;
+            }
+        };
+
+        function sendToWhatsApp() {
+            const ref = bookingData.reference;
+            const client = bookingData.allTravelers && bookingData.allTravelers[0] ? `${bookingData.allTravelers[0].nom} ${bookingData.allTravelers[0].prenom}` : "Client";
+            const service = `E-Visa ${bookingData.destination}`;
+            const total = bookingData.finalAmount;
+
+            let msg = `*CONFIRMATION DE PAIEMENT*%0A`;
+            msg += `----------------------------%0A`;
+            msg += `*RÉFÉRENCE:* ${ref}%0A`;
+            msg += `*CLIENT:* ${client}%0A`;
+            msg += `*SERVICE:* ${service}%0A`;
+            msg += `*MONTANT:* ${total} DZD%0A`;
+            msg += `----------------------------%0A`;
+            msg += `Bonjour, je vous transmets mon reçu de paiement (ou preuve de virement) pour mon dossier.`;
+
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }
+    </script>
+</body>
+</html>

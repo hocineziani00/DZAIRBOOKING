@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérification des informations | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&display=swap');
+        
+        html { zoom: 90%; }
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e3a8a;
+            background-image: linear-gradient(rgba(248, 250, 252, 0.9), rgba(248, 250, 252, 0.9)), url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=2070&auto=format&fit=crop');
+            background-attachment: fixed; background-size: cover;
+        }
+
+        .logo-container { position: relative; display: inline-block; cursor: pointer; }
+        .dove-icon { position: absolute; top: -18px; left: -5px; font-size: 42px; color: #60a5fa; transform: rotate(-10deg); }
+
+        .step-item { display: flex; align-items: center; gap: 8px; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; }
+        .step-line { width: 40px; height: 2px; background: #e2e8f0; }
+        .step-active .step-circle { background: #1e3a8a; color: white; }
+        .step-completed .step-circle { background: #db2777; color: white; }
+
+        .accordion-card { 
+            background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; 
+            overflow: hidden; transition: 0.3s; margin-bottom: 1rem;
+        }
+        .accordion-header { padding: 1.2rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #fff; }
+        .accordion-content { padding: 1.5rem; display: none; border-top: 1px solid #f1f5f9; background: #fafafa; }
+
+        .info-label { font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+        .info-value { font-size: 12px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; }
+
+        .doc-badge { 
+            background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 10px; 
+            font-size: 10px; font-weight: 900; text-transform: uppercase; border: 1px solid #dcfce7;
+        }
+
+        .legal-notice { background: #fff1f2; border: 1px solid #ffe4e6; border-radius: 1rem; padding: 1rem; font-size: 11px; }
+        input[type="checkbox"] { width: 18px; height: 18px; accent-color: #db2777; cursor: pointer; }
+        .check-text { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; }
+
+        .btn-confirm { 
+            background: #db2777; color: white; padding: 1.2rem 2.5rem; border-radius: 1rem; 
+            font-weight: 900; text-transform: uppercase; font-size: 14px; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(219, 39, 119, 0.2); width: 100%;
+        }
+        .btn-confirm:hover:not(:disabled) { background: #1e3a8a; transform: translateY(-2px); }
+        .btn-confirm:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
+
+        footer { background: white; border-top: 1px solid #f1f5f9; padding: 2rem 0; margin-top: 4rem; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="container mx-auto p-6 flex justify-between items-center">
+        <div class="logo-container" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-icon"></i>
+            <div class="text-3xl font-[950] text-blue-900 tracking-tighter italic uppercase">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center">
+            <div class="step-item step-completed">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="text-[10px] font-black uppercase text-pink-600">Sélection</span>
+            </div>
+            <div class="step-line mx-2"></div>
+            <div class="step-item step-completed">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="text-[10px] font-black uppercase text-pink-600">Passager</span>
+            </div>
+            <div class="step-line mx-2"></div>
+            <div class="step-item step-active">
+                <div class="step-circle">3</div>
+                <span class="text-[10px] font-black uppercase text-blue-900">Paiement</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 max-w-4xl flex-grow mt-6">
+        <h1 class="text-xl font-[950] uppercase mb-6 italic border-l-8 border-pink-600 pl-4 text-blue-900">Vérification des informations</h1>
+
+        <div id="travelersContainer"></div>
+
+        <div class="accordion-card p-6 bg-white/70 border-pink-100 border-2">
+            <div class="flex items-center gap-3 mb-4">
+                <img id="resFlag" src="" class="w-10 h-6 rounded-sm shadow-sm object-cover" alt="Flag">
+                <h3 id="resDest" class="font-black uppercase tracking-widest text-blue-900 text-lg">---</h3>
+            </div>
+            <div class="space-y-2 mb-4">
+                <div class="flex justify-between text-[11px] font-bold">
+                    <span class="text-gray-400 uppercase">Type de Visa:</span>
+                    <span class="text-blue-900">E-VISA TOURISME</span>
+                </div>
+                <div class="flex justify-between text-[11px] font-bold">
+                    <span class="text-gray-400 uppercase">Nombre de Passagers:</span>
+                    <span id="resPax" class="text-blue-900">1</span>
+                </div>
+            </div>
+            <div class="border-t border-dashed pt-4 flex justify-between items-center">
+                <span class="text-[11px] font-black text-blue-900 uppercase">Total à payer (TTC)</span>
+                <span id="resTotal" class="text-2xl font-[950] text-pink-600">0 DZD</span>
+            </div>
+        </div>
+
+        <div class="legal-notice my-6">
+            <p class="font-bold mb-1"><i class="fas fa-exclamation-triangle mr-2 text-pink-600"></i> AVERTISSEMENT IMPORTANT:</p>
+            <p class="opacity-80 leading-tight italic">L'agence n'est pas responsable en cas de refus par les autorités consulaires. Les frais de visa ne sont pas remboursables une fois le dossier soumis. Veuillez ne pas confirmer vos vols avant l'obtention du visa.</p>
+        </div>
+
+        <div class="space-y-4 mb-8">
+            <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-white/50 rounded-lg transition">
+                <input type="checkbox" id="c1" class="mt-1" onchange="check()">
+                <span class="check-text">Je confirme que toutes les informations saisies sont identiques à celles figurant sur le passeport.</span>
+            </label>
+            <label class="flex items-start gap-3 cursor-pointer p-2 hover:bg-white/50 rounded-lg transition">
+                <input type="checkbox" id="c2" class="mt-1" onchange="check()">
+                <span class="check-text">J'ai lu et j'accepte les conditions de service et la politique de non-remboursement.</span>
+            </label>
+        </div>
+
+        <button id="payBtn" disabled class="btn-confirm mb-10" onclick="goToPayment()">
+            Passer au Paiement Sécurisé <i class="fas fa-lock ml-2"></i>
+        </button>
+    </div>
+
+    <footer>
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest">DzAir Booking International</p>
+                <p class="text-[9px] text-gray-400 font-bold uppercase italic">Licence N°: 3450/2026 | Bordj Bou Arreridj, Algérie</p>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] font-black text-green-600 uppercase"><i class="fas fa-shield-alt mr-1"></i> SSL 256-BIT Secured</p>
+                <p class="text-[8px] text-gray-400 font-bold uppercase">Transaction sécurisée via CCP/Baridimob</p>
+            </div>
+            <p class="text-[10px] font-black text-pink-600 italic">© 2026 ALL RIGHTS RESERVED</p>
+        </div>
+    </footer>
+
+    <script>
+        // تحميل البيانات من LocalStorage
+        const data = JSON.parse(localStorage.getItem('visaBooking'));
+
+        window.onload = () => {
+            if (!data) {
+                alert("Session expirée. Veuillez recommencer.");
+                location.href = "visa.html";
+                return;
+            }
+            renderTravelers();
+            renderSummary();
+        };
+
+        function renderTravelers() {
+            const container = document.getElementById('travelersContainer');
+            container.innerHTML = '';
+
+            data.allTravelers.forEach((pax, index) => {
+                const card = `
+                    <div class="accordion-card">
+                        <div class="accordion-header" onclick="toggleAcc('p${index}')">
+                            <span class="text-xs font-black text-blue-900 uppercase italic">
+                                <i class="fas fa-user-circle mr-2 text-pink-600"></i> 
+                                01. Passager ${index + 1}: ${pax.nom} ${pax.prenom}
+                            </span>
+                            <i class="fas fa-chevron-down text-gray-300 text-xs transition-transform" id="icon-p${index}"></i>
+                        </div>
+                        <div class="accordion-content" id="p${index}" style="${index === 0 ? 'display: block;' : 'display: none;'}">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                                <div><p class="info-label">Nom Complet</p><p class="info-value">${pax.nom}</p></div>
+                                <div><p class="info-label">Prénom</p><p class="info-value">${pax.prenom}</p></div>
+                                <div><p class="info-label">Email</p><p class="info-value" style="text-transform: lowercase;">${pax.email}</p></div>
+                                <div><p class="info-label">Date de Naissance</p><p class="info-value">${formatDate(pax.birthDate)}</p></div>
+                                <div><p class="info-label">Numéro de Passeport</p><p class="info-value">${pax.passport}</p></div>
+                                <div><p class="info-label">Autorité de Délivrance</p><p class="info-value">${pax.authority}</p></div>
+                                <div><p class="info-label">Date d'Expiration</p><p class="info-value">${formatDate(pax.expiryDate)}</p></div>
+                                
+                                <div class="col-span-1 md:col-span-2 border-t pt-4 mt-2">
+                                    <p class="info-label mb-2">Documents Téléchargés</p>
+                                    <div class="flex gap-2">
+                                        <span class="doc-badge"><i class="fas fa-check-circle mr-1"></i> Scan Passeport</span>
+                                        <span class="doc-badge"><i class="fas fa-check-circle mr-1"></i> Photo d'identité</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-6 text-right">
+                                <a href="visa-form.html" class="text-[10px] font-black text-pink-600 uppercase italic underline">Modifier ✎</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function renderSummary() {
+            document.getElementById('resDest').innerText = data.destination;
+            document.getElementById('resFlag').src = data.flag;
+            document.getElementById('resPax').innerText = data.pax;
+            
+            // حساب المجموع: السعر الفردي * عدد المسافرين
+            const singlePrice = parseFloat(data.price.replace(/[^0-9]/g, ''));
+            const totalPrice = singlePrice * parseInt(data.pax);
+            document.getElementById('resTotal').innerText = totalPrice.toLocaleString() + " DZD";
+            
+            // حفظ المجموع النهائي للدفع
+            data.finalAmount = totalPrice;
+            localStorage.setItem('visaBooking', JSON.stringify(data));
+        }
+
+        function toggleAcc(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            const isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function check() {
+            const c1 = document.getElementById('c1').checked;
+            const c2 = document.getElementById('c2').checked;
+            document.getElementById('payBtn').disabled = !(c1 && c2);
+        }
+
+        function formatDate(dateStr) {
+            if(!dateStr) return "---";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('fr-FR');
+        }
+
+        function goToPayment() {
+            location.href = 'payment.html';
+        }
+    </script>
+</body>
+</html>

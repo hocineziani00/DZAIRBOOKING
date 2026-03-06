@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Visa | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #1e3a8a; }
+
+        .logo-container { position: relative; display: inline-block; cursor: pointer; }
+        .dove-icon { position: absolute; top: -18px; left: -5px; font-size: 42px; color: #60a5fa; transform: rotate(-10deg); }
+
+        .sidebar-flags { 
+            width: 160px; background: white; border-right: 1px solid #e2e8f0; 
+            height: calc(100vh - 80px); overflow-y: auto; position: sticky; top: 80px; 
+        }
+        .flag-item { padding: 15px 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.3s; opacity: 0.5; }
+        .flag-item img { width: 80px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 5px; }
+        .flag-item span { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; }
+        .flag-item.active { opacity: 1; background: #f8fafc; border-left: 5px solid #db2777; }
+        .flag-item.active span { color: #db2777; }
+
+        .visa-hero-section {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.95) 30%, rgba(255,255,255,0.7)), url('https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=2000');
+            background-size: cover; background-position: center; border-bottom: 1px solid #e2e8f0; padding: 40px 40px;
+        }
+
+        .visa-box { border-radius: 8px; overflow: hidden; margin-bottom: 12px; border: 1px solid #e2e8f0; background: white; }
+        .visa-header { background: #db2777; color: white; padding: 14px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13px; }
+        .visa-header.inactive { background: #64748b; }
+        .visa-body { max-height: 0; overflow: hidden; transition: all 0.3s ease; }
+        .visa-body.open { max-height: 1000px; padding: 20px; border-top: 1px solid #eee; }
+
+        .tab-btn { flex: 1; padding: 10px; font-weight: 700; font-size: 11px; text-transform: uppercase; border-bottom: 3px solid #eee; }
+        .tab-btn.active { border-bottom-color: #db2777; color: #db2777; }
+
+        .form-independent-box { 
+            background: white; padding: 25px; border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-top: 30px; border: 1px solid #f0f0f0;
+        }
+        .field-label { font-size: 11px; font-weight: 900; color: #1e3a8a; display: block; margin-bottom: 8px; text-transform: uppercase; }
+        .custom-input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-weight: 600; background: #f9fafb; outline: none; }
+        .custom-input:focus { border-color: #db2777; }
+
+        .btn-continue-small { 
+            background: #db2777; color: white; padding: 12px 40px; border-radius: 8px; 
+            font-weight: 900; text-transform: uppercase; font-size: 13px; transition: 0.3s;
+        }
+        .btn-continue-small:hover { background: #1e3a8a; }
+
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 100%; width: 200px; background: white; border: 1px solid #eee; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 100; }
+        .show-menu { display: block; }
+    </style>
+</head>
+<body onclick="closeNavOutside(event)">
+
+    <nav class="h-20 bg-white border-b flex items-center justify-between px-8 sticky top-0 z-50">
+        <div class="logo-container" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-icon"></i>
+            <div class="text-3xl font-[900] text-blue-900 tracking-tighter italic uppercase">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-6 relative">
+            <button onclick="toggleNavMenu(event)" class="text-blue-900 text-2xl p-2 hover:bg-gray-100 rounded-lg">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div id="navMenu" class="dropdown-menu overflow-hidden">
+                <a href="index.html" class="flex items-center p-4 font-bold text-blue-900 border-b hover:bg-gray-50"><i class="fas fa-home mr-3 text-pink-600"></i> Accueil</a>
+                <a href="#" class="flex items-center p-4 font-bold text-blue-900 border-b hover:bg-gray-50"><i class="fas fa-plane mr-3 text-pink-600"></i> Vols</a>
+                <a href="#" class="flex items-center p-4 font-bold text-blue-900 hover:bg-gray-50"><i class="fas fa-hotel mr-3 text-pink-600"></i> Hôtels</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <div class="sidebar-flags shadow-inner" id="sidebar"></div>
+
+        <div class="flex-1 min-h-screen flex flex-col">
+            <div class="visa-hero-section flex justify-between items-center">
+                <div>
+                    <div class="text-pink-600 font-black italic text-2xl tracking-wide uppercase">Demande de Visa</div>
+                    <p class="text-blue-900/60 text-xs font-bold mt-1 uppercase tracking-widest">Traitement rapide et sécurisé</p>
+                </div>
+                <div class="flex items-center gap-4 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-2xl border shadow-sm">
+                    <span id="badgeName" class="font-black text-blue-900 uppercase italic">Pays Sélectionné</span>
+                    <img id="badgeFlag" src="" class="w-10 rounded-sm shadow-sm">
+                </div>
+            </div>
+
+            <div class="max-w-5xl mx-auto px-6 mt-8 flex-grow w-full">
+                <div id="visaOptionsArea" class="space-y-4"></div>
+
+                <form id="visaForm" onsubmit="event.preventDefault(); proceed();" class="form-independent-box">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div>
+                            <label class="field-label">Date début du voyage *</label>
+                            <input type="date" id="tDate" class="custom-input" required>
+                        </div>
+                        <div>
+                            <label class="field-label">Nombre de personnes *</label>
+                            <select id="tPax" class="custom-input" required>
+                                <option value="1">1 Personne</option>
+                                <option value="2">2 Personnes</option>
+                                <option value="3">3 Personnes</option>
+                                <option value="4">4 Personnes</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Document de voyage *</label>
+                            <select class="custom-input" id="tDocType" required>
+                                <option value="">Choisir...</option>
+                                <option>Passeport Ordinaire</option>
+                                <option>Passeport Diplomatique</option>
+                                <option>Carte d'identité</option>
+                                <option>Document de voyage</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Nationalité *</label>
+                            <select class="custom-input" id="tNation" required>
+                                <option value="">Choisir...</option>
+                                <option>Algérienne</option>
+                                <option>Tunisienne</option>
+                                <option>Marocaine</option>
+                                <option>Française</option>
+                                <option>Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end mt-8">
+                        <button type="submit" class="btn-continue-small shadow-lg">
+                            Continuer <i class="fas fa-chevron-right ml-3"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="mt-16 text-center border-t py-10 bg-white">
+                <p class="text-gray-400 font-bold text-[11px] tracking-widest uppercase mb-4">© 2026 DZAIR BOOKING. ALL RIGHTS RESERVED.</p>
+                <div class="flex justify-center space-x-10 text-[13px] font-black text-blue-900">
+                    <span><i class="fas fa-phone-alt text-pink-600 mr-2"></i> 05 60 99 90 09</span>
+                    <span><i class="fas fa-envelope text-pink-600 mr-2"></i> SUPPORT@DZAIRBOOKING.DZ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const visaData = [
+            { id: 'egypt', name: 'Égypte', flag: 'https://flagcdn.com/w80/eg.png', options: [
+                { title: 'E-Visa Égypte 30 Jours (Entrée Simple)', price: '3.500,00 DZD', delay: '3-5 Jours', docs: ['Scan du Passeport', 'Photo fond blanc'], cond: 'Le passeport doit être valide 6 months après la date de retour.' }
+            ]},
+            { id: 'turquie', name: 'Turquie', flag: 'https://flagcdn.com/w80/tr.png', options: [
+                { title: 'E-Visa Turquie B1 (Entrée Simple)', price: '12.500,00 DZD', delay: '24h', docs: ['Scan Passeport', 'Visa Schengen/USA valide'], cond: 'Âge entre 18 et 35 ans requis pour cette catégorie.' }
+            ]},
+            { id: 'oman', name: 'Oman', flag: 'https://flagcdn.com/w80/om.png', options: [
+                { title: 'E-Visa Oman 10 Jours', price: '5.000,00 DZD', delay: '48h', docs: ['Scan du Passeport'], cond: 'Entrée unique.' }
+            ]},
+            { id: 'azerbaijan', name: 'Azerbaïdjan', flag: 'https://flagcdn.com/w80/az.png', options: [
+                { title: 'E-Visa Azerbaïdjan Standard', price: '9.500,00 DZD', delay: '3-5 Jours', docs: ['Scan Passeport', 'Réservation d’hôtel'], cond: 'Le passeport doit être valide plus de 6 mois.' },
+                { title: 'E-Visa Azerbaïdjan Express', price: '19.000,00 DZD', delay: '24h', docs: ['Scan Passeport'], cond: 'Traitement prioritaire en 24h.' }
+            ]}
+        ];
+
+        let selectedVisa = null;
+
+        function toggleNavMenu(event) {
+            event.stopPropagation();
+            document.getElementById('navMenu').classList.toggle('show-menu');
+        }
+
+        function closeNavOutside(event) {
+            const menu = document.getElementById('navMenu');
+            if (menu && menu.classList.contains('show-menu')) {
+                menu.classList.remove('show-menu');
+            }
+        }
+
+        function selectCountry(id) {
+            document.querySelectorAll('.flag-item').forEach(f => f.classList.remove('active'));
+            const element = document.getElementById(`flag-${id}`);
+            if(element) element.classList.add('active');
+
+            const country = visaData.find(c => c.id === id);
+            document.getElementById('badgeName').innerText = country.name;
+            document.getElementById('badgeFlag').src = country.flag;
+
+            const area = document.getElementById('visaOptionsArea');
+            area.innerHTML = '';
+
+            country.options.forEach((opt, idx) => {
+                const isOpen = idx === 0;
+                if(isOpen) selectedVisa = opt;
+                
+                area.innerHTML += `
+                    <div class="visa-box">
+                        <div class="visa-header ${isOpen ? '' : 'inactive'}" id="h-${idx}" onclick="openVisa(${idx})">
+                            <span class="uppercase font-black tracking-tight italic">${opt.title}</span>
+                            <span>${opt.price} / 1 Personne</span>
+                        </div>
+                        <div id="b-${idx}" class="visa-body ${isOpen ? 'open' : ''}">
+                            <div class="flex mb-6 border-b">
+                                <button class="tab-btn active" id="t-desc-${idx}" onclick="setTab(${idx}, 'desc')">Description</button>
+                                <button class="tab-btn" id="t-cond-${idx}" onclick="setTab(${idx}, 'cond')">Condition</button>
+                            </div>
+                            <div id="c-${idx}" class="text-[12px] text-gray-600 leading-relaxed font-medium">
+                                <p class="mb-2">Délai de Traitement: <b class="text-blue-900">${opt.delay}</b></p>
+                                <p class="text-red-600 font-bold italic mb-4">L'agence DzAir Booking n'assume aucune responsabilité si le client achète son billet d'avion avant l'obtention du visa.</p>
+                                <p class="font-black text-blue-900 uppercase mb-2 underline">Documents nécessaires :</p>
+                                <ul class="list-disc ml-5 space-y-1">
+                                    ${opt.docs.map(d => `<li>${d}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openVisa(idx) {
+            const countryId = document.querySelector('.flag-item.active').id.replace('flag-', '');
+            const country = visaData.find(c => c.id === countryId);
+            selectedVisa = country.options[idx];
+
+            document.querySelectorAll('.visa-body').forEach(b => b.classList.remove('open'));
+            document.querySelectorAll('.visa-header').forEach(h => h.classList.add('inactive'));
+            document.getElementById(`b-${idx}`).classList.add('open');
+            document.getElementById(`h-${idx}`).classList.remove('inactive');
+        }
+
+        function setTab(idx, type) {
+            const countryId = document.querySelector('.flag-item.active').id.replace('flag-', '');
+            const country = visaData.find(c => c.id === countryId);
+            const opt = country.options[idx];
+            const content = document.getElementById(`c-${idx}`);
+            
+            document.getElementById(`t-desc-${idx}`).classList.toggle('active', type === 'desc');
+            document.getElementById(`t-cond-${idx}`).classList.toggle('active', type === 'cond');
+
+            if(type === 'desc') {
+                content.innerHTML = `
+                    <p class="mb-2">Délai de Traitement: <b class="text-blue-900">${opt.delay}</b></p>
+                    <p class="text-red-600 font-bold italic mb-4">L'agence DzAir Booking n'assume aucune responsabilité si le client achète son billet d'avion avant l'obtention du visa.</p>
+                    <p class="font-black text-blue-900 uppercase mb-2 underline">Documents nécessaires :</p>
+                    <ul class="list-disc ml-5 space-y-1">${opt.docs.map(d => `<li>${d}</li>`).join('')}</ul>`;
+            } else {
+                content.innerHTML = `
+                    <p class="font-bold text-blue-900 italic underline uppercase mb-2">Conditions d'éligibilité :</p>
+                    <p class="font-semibold text-gray-700 bg-gray-50 p-4 border-l-4 border-pink-600">${opt.cond}</p>`;
+            }
+        }
+
+        // الوظيفة المحدثة لضمان التوافق التام
+        function proceed() { 
+            if(!selectedVisa) {
+                alert("Veuillez sélectionner un type de visa.");
+                return;
+            }
+
+            const visaInfo = {
+                destination: document.getElementById('badgeName').innerText, // تم التغيير لـ destination ليتطابق مع صفحة المراجعة
+                flag: document.getElementById('badgeFlag').src,             // حفظ رابط العلم
+                title: selectedVisa.title,
+                price: selectedVisa.price,
+                pax: document.getElementById('tPax').value,
+                date: document.getElementById('tDate').value,
+                docType: document.getElementById('tDocType').value,
+                nationality: document.getElementById('tNation').value,
+                currentTraveler: 1,
+                allTravelers: [] 
+            };
+
+            localStorage.setItem('visaBooking', JSON.stringify(visaInfo));
+            window.location.href = 'visa-form.html'; 
+        }
+
+        window.onload = () => {
+            const side = document.getElementById('sidebar');
+            visaData.forEach(c => {
+                side.innerHTML += `<div class="flag-item" id="flag-${c.id}" onclick="selectCountry('${c.id}')"><img src="${c.flag}"><span>${c.name}</span></div>`;
+            });
+            const params = new URLSearchParams(window.location.search);
+            const type = params.get('type') || 'turquie';
+            selectCountry(type);
+            document.getElementById('tDate').min = new Date().toISOString().split('T')[0];
+        };
+    </script>
+</body>
+</html>

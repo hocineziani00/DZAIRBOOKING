@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DzAir Booking | Accueil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f9fafb; overflow-x: hidden; }
+        
+        .logo-container { position: relative; display: inline-block; cursor: pointer; padding-top: 15px; }
+        .dove-icon { position: absolute; top: -15px; left: 0px; font-size: 45px; color: #60a5fa; opacity: 0.9; transform: rotate(-10deg); }
+        .hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 580px; background-size: cover; background-position: center; transition: background-image 0.8s ease-in-out; z-index: -1; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 580px; background: linear-gradient(to bottom, rgba(255,255,255,0.1), #f9fafb); z-index: -1; }
+        
+        .service-card { transition: all 0.3s ease; cursor: pointer; position: relative; }
+        .service-card:hover { transform: translateY(-5px); }
+        .active-service::after { content: ''; position: absolute; bottom: -12px; width: 40px; height: 5px; background-color: #db2777; border-radius: 20px; }
+        .hidden-menu { display: none; }
+        .show-menu { display: block !important; }
+        .menu-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #f1f1f1; font-weight: 800; color: #1e3a8a; font-style: italic; transition: 0.3s; }
+        .menu-item:hover { background-color: #f8fafc; color: #db2777; }
+        .menu-item i { margin-right: 15px; color: #db2777; }
+    </style>
+</head>
+<body>
+    <div id="dynamic-bg" class="hero-bg" style="background-image: url('https://images.unsplash.com/photo-1544016768-982d1554f0b9?q=80&w=1200');"></div>
+    <div class="overlay"></div>
+
+    <nav class="container mx-auto p-6 flex justify-between items-center relative z-50">
+        <div class="logo-container" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-icon"></i>
+            <div class="text-3xl font-extrabold text-blue-900 tracking-tighter italic uppercase">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <div class="relative dropdown-container">
+                <button id="trackBtn" onclick="toggleMenu('trackMenu')" class="bg-blue-900 text-white p-2.5 rounded-full shadow-md hover:bg-pink-600 transition-all flex items-center justify-center">
+                    <i class="fas fa-search-location text-sm"></i>
+                </button>
+                <div id="trackMenu" class="hidden-menu absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border p-4 z-50">
+                    <p class="text-[10px] font-black text-blue-900 uppercase mb-2 text-center italic">Suivi de dossier</p>
+                    <input type="text" id="trackInput" placeholder="N° RÉFÉRENCE" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none focus:border-pink-600 mb-2 text-center uppercase">
+                    <button onclick="handleTracking()" class="w-full bg-pink-600 text-white py-2 rounded-xl font-black text-[10px] uppercase">Vérifier</button>
+                </div>
+            </div>
+
+            <div class="relative dropdown-container">
+                <button id="langBtn" onclick="toggleMenu('langMenu')" class="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                    <img id="active-flag" src="https://flagcdn.com/w20/fr.png" class="mr-2 w-4">
+                    <span id="active-lang" class="text-xs font-bold text-blue-900">FR</span>
+                </button>
+                <div id="langMenu" class="hidden-menu absolute right-0 mt-2 w-32 bg-white rounded-xl shadow-xl border p-1 z-50">
+                    </div>
+            </div>
+
+            <div class="relative dropdown-container">
+                <button id="mainMenuBtn" onclick="toggleMenu('mainMenu')" class="text-blue-900 text-3xl p-2"><i class="fas fa-bars"></i></button>
+                <div id="mainMenu" class="hidden-menu absolute right-0 top-14 w-64 bg-white rounded-[2rem] shadow-2xl border p-2 z-50">
+                    <a href="visa.html" class="menu-item"><i class="fas fa-passport"></i> E-Visas</a>
+                    <a href="javascript:void(0)" onclick="alert('Bientôt disponible')" class="menu-item"><i class="fas fa-plane"></i> Vols</a>
+                    <a href="javascript:void(0)" onclick="alert('Bientôt disponible')" class="menu-item"><i class="fas fa-hotel"></i> Hôtels</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-12 px-4 text-center relative z-10">
+        <h1 class="text-4xl md:text-6xl font-[900] text-blue-900 mb-2 uppercase tracking-tight">
+            Préparez votre <span class="text-pink-600">Visa</span> en ligne
+        </h1>
+        <p class="text-xl font-semibold italic text-gray-800 mb-12">Rapide, Simple et Sécurisé</p>
+
+        <div class="flex justify-center space-x-8 md:space-x-16 mb-16">
+            <div onclick="location.href='visa.html'" class="service-card active-service flex flex-col items-center">
+                <div class="w-20 h-20 bg-white rounded-3xl shadow-lg flex items-center justify-center text-4xl border-2 border-blue-400">🌍</div>
+                <span class="mt-3 font-black text-blue-900 text-sm uppercase">Visas</span>
+            </div>
+            <div onclick="alert('Service Vols bientôt disponible')" class="service-card flex flex-col items-center">
+                <div class="w-20 h-20 bg-white rounded-3xl shadow-lg flex items-center justify-center text-4xl border-2 border-blue-100">✈️</div>
+                <span class="mt-3 font-black text-blue-900 text-sm uppercase">Vols</span>
+            </div>
+            <div onclick="alert('Service Hôtels bientôt disponible')" class="service-card flex flex-col items-center">
+                <div class="w-20 h-20 bg-white rounded-3xl shadow-lg flex items-center justify-center text-4xl border-2 border-blue-100">🏨</div>
+                <span class="mt-3 font-black text-blue-900 text-sm uppercase">Hôtels</span>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white/90 backdrop-blur-md p-8 rounded-[2.5rem] shadow-2xl border border-white mb-20">
+            <div class="text-left mb-6">
+                <p class="text-blue-900 font-bold italic text-lg ml-2">Sélectionnez votre destination :</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="col-span-2 bg-gray-50 p-4 rounded-2xl border text-left">
+                    <label class="text-[10px] font-black text-pink-600 uppercase block mb-1">Destination</label>
+                    <select id="destSelect" class="bg-transparent w-full outline-none font-bold text-blue-900">
+                        <option value="turquie">Turquie (E-Visa)</option>
+                        <option value="oman">Oman (E-Visa)</option>
+                        <option value="dubai">Dubaï (Visa Touristique)</option>
+                        <option value="egypte">Égypte (Visa Touristique)</option>
+                    </select>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-2xl border text-left">
+                    <label class="text-[10px] font-black text-pink-600 uppercase block mb-1">Date de voyage</label>
+                    <input type="date" id="travelDate" class="bg-transparent w-full outline-none font-bold text-blue-900">
+                </div>
+                <button onclick="searchVisa()" class="bg-blue-900 text-white rounded-2xl font-black uppercase hover:bg-pink-600 shadow-lg transition-all active:scale-95">Rechercher</button>
+            </div>
+        </div>
+
+        <div class="text-left mb-8">
+            <h2 class="text-xl font-black text-blue-900 border-l-4 border-pink-600 pl-4 uppercase">Nos meilleures offres</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div class="bg-white rounded-[2.5rem] overflow-hidden shadow-lg border border-gray-50 group cursor-pointer hover:shadow-2xl transition duration-300">
+                <div class="h-52 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1535916793913-35f9ccf00da0" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                </div>
+                <div class="p-6 text-left">
+                    <span class="bg-blue-50 text-blue-600 text-[10px] font-black px-3 py-1 rounded-full uppercase">Promotion</span>
+                    <h3 class="font-bold text-blue-900 mt-3 text-lg">Tunisie - Hammamet 4*</h3>
+                    <p class="text-pink-600 font-black mt-1">À partir de 4.500 DZD</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white pt-16 pb-8 border-t">
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
+            <div>
+                <h3 class="font-black text-blue-900 mb-4 uppercase text-sm italic">QUI SOMMES-NOUS ?</h3>
+                <p class="text-gray-500 text-xs leading-relaxed font-medium">DzAir Booking vous accompagne avec les meilleures solutions de voyage.</p>
+                <div class="flex space-x-5 mt-6">
+                    <a href="#" class="text-blue-600 hover:scale-110 transition"><i class="fab fa-facebook text-2xl"></i></a>
+                    <a href="#" class="text-pink-600 hover:scale-110 transition"><i class="fab fa-instagram text-2xl"></i></a>
+                    <a href="#" class="text-black hover:scale-110 transition"><i class="fab fa-tiktok text-2xl"></i></a>
+                </div>
+            </div>
+            <div class="text-xs text-gray-700 font-bold italic space-y-4">
+                <h3 class="font-black text-blue-900 mb-4 uppercase text-sm not-italic">CONTACTEZ-NOUS</h3>
+                <p><i class="fas fa-phone-alt mr-3 text-pink-600"></i> 05 60 99 90 09</p>
+                <p><i class="fas fa-envelope mr-3 text-pink-600"></i> support@dzairbooking.dz</p>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <a href="https://wa.me/213560999009" class="bg-[#25D366] text-white px-10 py-4 rounded-full font-black text-xs shadow-xl flex items-center uppercase transition hover:scale-105">
+                    <i class="fab fa-whatsapp mr-3 text-2xl"></i> BESOIN D'AIDE ?
+                </a>
+                <p class="text-[10px] text-gray-400 mt-6 font-bold uppercase">© 2026 DZAIR BOOKING. ALL RIGHTS RESERVED.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. إدارة الصور الأربعة
+        const images = [
+            'https://images.unsplash.com/photo-1544016768-982d1554f0b9?q=80&w=1200',
+            'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200',
+            'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?q=80&w=1200',
+            'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200'
+        ];
+        let idx = 0;
+        setInterval(() => {
+            idx = (idx + 1) % images.length;
+            const bg = document.getElementById('dynamic-bg');
+            if(bg) bg.style.backgroundImage = `url('${images[idx]}')`;
+        }, 3000);
+
+        // 2. إدارة القوائم المنسدلة (فتح وغلق ذكي)
+        function toggleMenu(id) {
+            const menu = document.getElementById(id);
+            const isVisible = menu.classList.contains('show-menu');
+            closeAllMenus();
+            if (!isVisible) {
+                menu.classList.add('show-menu');
+                if(id === 'langMenu') renderLangOptions();
+            }
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll('.hidden-menu').forEach(m => m.classList.remove('show-menu'));
+        }
+
+        // 3. إدارة اللغات (إخفاء اللغة المفعلة)
+        const allLangs = [
+            { code: 'AR', name: 'AR', flag: 'https://flagcdn.com/w20/dz.png' },
+            { code: 'FR', name: 'FR', flag: 'https://flagcdn.com/w20/fr.png' },
+            { code: 'EN', name: 'EN', flag: 'https://flagcdn.com/w20/gb.png' }
+        ];
+
+        function renderLangOptions() {
+            const current = document.getElementById('active-lang').innerText;
+            const menu = document.getElementById('langMenu');
+            menu.innerHTML = '';
+            allLangs.filter(l => l.code !== current).forEach(lang => {
+                const btn = document.createElement('button');
+                btn.className = "w-full flex items-center px-3 py-2 hover:bg-gray-100 rounded text-xs font-bold text-blue-900 border-b last:border-0";
+                btn.innerHTML = `<img src="${lang.flag}" class="mr-2 w-4"> ${lang.name}`;
+                btn.onclick = () => updateLang(lang.code, lang.flag);
+                menu.appendChild(btn);
+            });
+        }
+
+        function updateLang(lang, flag) {
+            document.getElementById('active-lang').innerText = lang;
+            document.getElementById('active-flag').src = flag;
+            closeAllMenus();
+        }
+
+        // 4. ضبط الرزنامة (منع التاريخ القديم)
+        const dateInput = document.getElementById('travelDate');
+        if(dateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+            dateInput.value = today;
+        }
+
+        // 5. البحث والتحويل لصفحة الفيزا
+        function searchVisa() {
+            const dest = document.getElementById('destSelect').value;
+            window.location.href = `visa.html?type=${dest}`;
+        }
+
+        function handleTracking() {
+            const ref = document.getElementById('trackInput').value.trim();
+            if (ref === "") { alert("Veuillez entrer votre référence"); return; }
+            window.location.href = `track.html?ref=${ref}`;
+        }
+
+        // 6. الغلق عند الضغط في أي مكان
+        window.onclick = function(event) {
+            if (!event.target.closest('.dropdown-container')) {
+                closeAllMenus();
+            }
+        }
+    </script>
+</body>
+</html>

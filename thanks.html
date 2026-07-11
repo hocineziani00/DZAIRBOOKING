@@ -6,8 +6,10 @@
     <title>Confirmation | DzAir Booking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- إدراج مكتبة EmailJS لإرسال الإيميلات -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&family=Inter:wght@400;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;900&family=Inter:wght=400;700;800&display=swap');
         body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; }
         .font-inter { font-family: 'Inter', sans-serif; }
         .logo-wrapper { position: relative; display: inline-block; cursor: pointer; }
@@ -53,22 +55,24 @@
             <p id="displayRef" class="text-2xl font-[950] text-blue-900 tracking-widest">----------</p>
         </div>
 
-        <div id="infoSection" class="text-left space-y-4 mb-8">
-            </div>
+        <div id="infoSection" class="text-left space-y-4 mb-8"></div>
 
         <div class="space-y-4">
             <button onclick="sendToWhatsApp()" class="w-full flex items-center justify-center gap-3 bg-[#25d366] text-white py-5 rounded-[2rem] font-black uppercase text-xs shadow-xl hover:scale-105 transition-all">
                 <i class="fab fa-whatsapp text-2xl"></i> Envoyer le reçu de paiement
             </button>
 
-            <button onclick="location.href='index.html'" class="w-full text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] hover:text-blue-900 transition">
+            <button onclick="clearSessionAndHome()" class="w-full text-slate-400 font-bold uppercase text-[10px] tracking-[0.3em] hover:text-blue-900 transition">
                 <i class="fas fa-home mr-1"></i> Retour à l'accueil
             </button>
         </div>
     </div>
 
     <script>
-        const bookingData = JSON.parse(localStorage.getItem('finalOrder'));
+        // تفعيل معرف الحساب الموثق الخاص بك مباشرة
+        emailjs.init("UUY_2Ka2enpDfk8kd");
+
+        const bookingData = JSON.parse(localStorage.getItem('finalOrder')) || JSON.parse(localStorage.getItem('visaBooking'));
         const phone = "213657133118";
 
         window.onload = () => {
@@ -77,11 +81,12 @@
                 return;
             }
 
-            document.getElementById('displayRef').innerText = bookingData.reference;
+            const refNumber = bookingData.referenceNumber || bookingData.reference || "---";
+            document.getElementById('displayRef').innerText = refNumber;
+            
             const method = bookingData.method;
             const infoSection = document.getElementById('infoSection');
 
-            // إعداد معلومات الـ CCP (تظهر في الحالتين)
             const ccpInfo = `
                 <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100">
                     <p class="text-[11px] text-blue-800 font-bold mb-2">💳 Paiement via BaridiMob / CCP:</p>
@@ -92,7 +97,6 @@
                 </div>
             `;
 
-            // إعداد معلومات الوكالة
             const agenceInfo = `
                 <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                     <p class="text-[11px] text-slate-800 font-bold mb-1 italic">📍 Siège Social:</p>
@@ -103,7 +107,6 @@
             `;
 
             if (method === 'agence') {
-                // إذا اختار الوكالة: نعرض الوكالة أولاً ثم الـ CCP كخيار إضافي
                 infoSection.innerHTML = `
                     <div class="flex justify-between items-center px-2"><span class="text-[9px] font-black text-gray-400 uppercase">Option Choisie:</span><span class="text-[10px] font-bold text-blue-900">AU BUREAU</span></div>
                     ${agenceInfo}
@@ -114,19 +117,49 @@
                     ${ccpInfo}
                 `;
             } else {
-                // إذا اختار CCP: نعرض الـ CCP فقط
                 infoSection.innerHTML = `
                     <div class="flex justify-between items-center px-2"><span class="text-[9px] font-black text-gray-400 uppercase">Option Choisie:</span><span class="text-[10px] font-bold text-pink-600">BARIDIMOB / CCP</span></div>
                     ${ccpInfo}
                 `;
             }
+
+            // تشغيل دالة إرسال الإيميل التلقائي
+            sendConfirmationEmail(refNumber);
         };
 
+        async function sendConfirmationEmail(refNumber) {
+            const mainTraveler = bookingData.allTravelers && bookingData.allTravelers[0] ? bookingData.allTravelers[0] : null;
+            const clientEmail = mainTraveler ? mainTraveler.email : null;
+            const clientName = mainTraveler ? `${mainTraveler.nom} ${mainTraveler.prenom}` : "Client";
+            
+            if (!clientEmail) return; 
+
+            const paymentMethodText = bookingData.method === 'ccp' ? 'BaridiMob / CCP' : 'Au Bureau (Agence)';
+            const destinationText = bookingData.destination ? bookingData.destination.toUpperCase() : "---";
+
+            const templateParams = {
+                to_email: clientEmail,
+                to_name: clientName,
+                reference_number: refNumber,
+                destination: destinationText,
+                payment_method: paymentMethodText
+            };
+
+            // تم وضع الـ Service ID الخاص بك 'service_mzevagi'
+            // ملاحظة: تأكد أن معرف القالب أدناه هو 'template_j6f5r8q'، إذا غيرته في المنصة يمكنك تعديله هنا فقط.
+            emailjs.send('service_mzevagi', 'template_j6f5r8q', templateParams)
+                .then(() => {
+                    console.log('Email envoyé avec succès au client !');
+                }, (error) => {
+                    console.error('Erreur lors de l\'envoi de l\'email:', error);
+                });
+        }
+
         function sendToWhatsApp() {
-            const ref = bookingData.reference;
+            const ref = bookingData.referenceNumber || bookingData.reference || "---";
             const client = bookingData.allTravelers && bookingData.allTravelers[0] ? `${bookingData.allTravelers[0].nom} ${bookingData.allTravelers[0].prenom}` : "Client";
-            const service = `E-Visa ${bookingData.destination}`;
-            const total = bookingData.finalAmount;
+            const service = `E-Visa ${bookingData.destination || "---"}`;
+            const total = Math.floor(parseFloat(bookingData.finalAmount || 0)).toLocaleString('fr-FR');
 
             let msg = `*CONFIRMATION DE PAIEMENT*%0A`;
             msg += `----------------------------%0A`;
@@ -138,6 +171,12 @@
             msg += `Bonjour, je vous transmets mon reçu de paiement (ou preuve de virement) pour mon dossier.`;
 
             window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }
+
+        function clearSessionAndHome() {
+            localStorage.removeItem('visaBooking');
+            localStorage.removeItem('finalOrder');
+            location.href = 'index.html';
         }
     </script>
 </body>

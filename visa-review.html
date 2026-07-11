@@ -98,7 +98,7 @@
             <div class="space-y-2 mb-4">
                 <div class="flex justify-between text-[11px] font-bold">
                     <span class="text-gray-400 uppercase">Type de Visa:</span>
-                    <span class="text-blue-900">E-VISA TOURISME</span>
+                    <span id="resTitle" class="text-blue-900">---</span>
                 </div>
                 <div class="flex justify-between text-[11px] font-bold">
                     <span class="text-gray-400 uppercase">Nombre de Passagers:</span>
@@ -147,12 +147,11 @@
     </footer>
 
     <script>
-        // تحميل البيانات من LocalStorage
         const data = JSON.parse(localStorage.getItem('visaBooking'));
 
         window.onload = () => {
-            if (!data) {
-                alert("Session expirée. Veuillez recommencer.");
+            if (!data || !data.allTravelers || data.allTravelers.length === 0) {
+                alert("Session expirée أو تفاصيل المسافرين ناقصة. Veuillez recommencer.");
                 location.href = "visa.html";
                 return;
             }
@@ -193,7 +192,7 @@
                                 </div>
                             </div>
                             <div class="mt-6 text-right">
-                                <a href="visa-form.html" class="text-[10px] font-black text-pink-600 uppercase italic underline">Modifier ✎</a>
+                                <a href="#" onclick="triggerModify()" class="text-[10px] font-black text-pink-600 uppercase italic underline">Modifier ✎</a>
                             </div>
                         </div>
                     </div>
@@ -206,15 +205,22 @@
             document.getElementById('resDest').innerText = data.destination;
             document.getElementById('resFlag').src = data.flag;
             document.getElementById('resPax').innerText = data.pax;
+            document.getElementById('resTitle').innerText = data.title || "E-VISA TOURISME";
             
-            // حساب المجموع: السعر الفردي * عدد المسافرين
-            const singlePrice = parseFloat(data.price.replace(/[^0-9]/g, ''));
+            // إصلاح حساب السعر باستخدام المتغير الصحيح singlePrice الآتي من كود صفحة visa.html
+            const singlePrice = parseFloat(data.singlePrice) || 0;
             const totalPrice = singlePrice * parseInt(data.pax);
-            document.getElementById('resTotal').innerText = totalPrice.toLocaleString() + " DZD";
+            document.getElementById('resTotal').innerText = totalPrice.toLocaleString('fr-FR') + " DZD";
             
-            // حفظ المجموع النهائي للدفع
             data.finalAmount = totalPrice;
             localStorage.setItem('visaBooking', JSON.stringify(data));
+        }
+
+        function triggerModify() {
+            // تفريغ المصفوفة القديمة ليعيد إدخال البيانات النظيفة من جديد دون تداخل
+            data.allTravelers = [];
+            localStorage.setItem('visaBooking', JSON.stringify(data));
+            location.href = "visa-form.html";
         }
 
         function toggleAcc(id) {
@@ -238,6 +244,11 @@
         }
 
         function goToPayment() {
+            // توليد رقم مرجعي عشوائي فريد قبل الذهاب للدفع لتوثيق الحجز وضمان الـ User Flow الذكي
+            const randRef = "DZ-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
+            data.referenceNumber = randRef;
+            localStorage.setItem('visaBooking', JSON.stringify(data));
+            
             location.href = 'payment.html';
         }
     </script>

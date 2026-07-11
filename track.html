@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi de Dossier | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;900&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f8fafc; color: #1e3a8a; }
+        .logo-wrapper { position: relative; display: inline-block; cursor: pointer; }
+        .dove-logo { 
+            position: absolute; top: -15px; left: 0; 
+            color: rgba(96, 165, 250, 0.5); 
+            font-size: 35px; transform: rotate(-15deg); z-index: 10;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4">
+
+    <nav class="w-full max-w-4xl flex justify-between items-center mb-12 mt-4 bg-white p-4 rounded-2xl shadow-sm">
+        <div class="logo-wrapper" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-logo"></i>
+            <div class="text-2xl font-black text-blue-900 italic uppercase">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+        <button onclick="location.href='index.html'" class="text-xs font-bold text-slate-400 hover:text-blue-900 uppercase">
+            <i class="fas fa-home mr-1"></i> Accueil
+        </button>
+    </nav>
+
+    <div class="max-w-xl w-full bg-white rounded-[40px] p-8 shadow-2xl border border-slate-50">
+        <h1 class="text-2xl font-black text-center uppercase italic text-blue-900 mb-8">Suivi de votre <span class="text-pink-600">Dossier</span></h1>
+        
+        <div class="flex gap-2 mb-8 bg-slate-50 p-2 rounded-2xl border">
+            <input type="text" id="refInput" placeholder="N° RÉFÉRENCE (Ex: DZ-2026-XXXX)" class="bg-transparent flex-grow px-4 py-2 text-xs font-bold outline-none uppercase text-blue-900">
+            <button id="btnSearch" class="bg-blue-900 text-white px-6 py-2 rounded-xl font-black text-xs uppercase hover:bg-pink-600 transition">Chercher</button>
+        </div>
+
+        <div id="loader" class="hidden text-center py-8">
+            <i class="fas fa-spinner fa-spin text-2xl text-pink-600"></i>
+            <p class="text-xs font-bold text-slate-400 mt-2 uppercase">Recherche sur le serveur...</p>
+        </div>
+
+        <div id="errorCard" class="hidden bg-red-50 text-red-600 p-6 rounded-3xl text-center border border-red-100 mb-6">
+            <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+            <p class="text-xs font-black uppercase">Aucun dossier trouvé avec cette référence.</p>
+        </div>
+
+        <div id="statusCard" class="hidden space-y-6">
+            <div class="bg-blue-50 border border-blue-100 p-5 rounded-3xl flex justify-between items-center">
+                <div>
+                    <p id="refDisplay" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">RÉF: ------</p>
+                    <h3 id="trackName" class="text-base font-bold text-blue-900 uppercase">--- ---</h3>
+                    <p id="trackDest" class="text-xs font-bold text-pink-600 mt-0.5">E-VISA ---</p>
+                </div>
+                <div id="methodBadge" class="bg-white px-3 py-1.5 rounded-full text-[9px] font-black text-blue-900 border uppercase">---</div>
+            </div>
+
+            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                <p class="text-[9px] font-black text-slate-400 uppercase mb-6 tracking-wider">État d'avancement du dossier :</p>
+                
+                <div id="timelineLine" class="relative pl-8 space-y-8 border-l-2 border-slate-200 ml-2">
+                    
+                    <div class="relative" id="step-received">
+                        <div id="circle-received" class="absolute -left-[41px] top-0 w-4 h-4 bg-slate-300 rounded-full border-4 border-white transition-all"></div>
+                        <h4 id="text-received" class="text-xs font-black text-slate-400 uppercase transition-all">1. Demande Reçue</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Votre dossier est bien enregistré sur notre plateforme.</p>
+                    </div>
+
+                    <div class="relative" id="step-confirmed">
+                        <div id="circle-confirmed" class="absolute -left-[41px] top-0 w-4 h-4 bg-slate-300 rounded-full border-4 border-white transition-all"></div>
+                        <h4 id="text-confirmed" class="text-xs font-black text-slate-400 uppercase transition-all">2. Demande Confirmée</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Votre paiement ou méthode de dépôt a été validée.</p>
+                    </div>
+
+                    <div class="relative" id="step-processing">
+                        <div id="circle-processing" class="absolute -left-[41px] top-0 w-4 h-4 bg-slate-300 rounded-full border-4 border-white transition-all"></div>
+                        <h4 id="text-processing" class="text-xs font-black text-slate-400 uppercase transition-all">3. En cours de traitement</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Nos agents vérifient vos documents et entament les procédures.</p>
+                    </div>
+
+                    <div class="relative" id="step-ready">
+                        <div id="circle-ready" class="absolute -left-[41px] top-0 w-4 h-4 bg-slate-300 rounded-full border-4 border-white transition-all"></div>
+                        <h4 id="text-ready" class="text-xs font-black text-slate-400 uppercase transition-all">4. Visa Prêt / Terminé</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Félicitations! Votre e-visa est prêt, nous vous contacterons.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNR11GVPimbP_p-cT-EIBn0AzOd05_Np0",
+            authDomain: "dzair-booking.firebaseapp.com",
+            projectId: "dzair-booking",
+            storageBucket: "dzair-booking.firebasestorage.app",
+            messagingSenderId: "1004941084286",
+            appId: "1:1004941084286:web:329aa5fb5c3f4e7e603a2f",
+            measurementId: "G-RRYDNFZT6N"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+
+            if (refParam) {
+                document.getElementById('refInput').value = refParam.toUpperCase().trim();
+                fetchOrderStatus(refParam.toUpperCase().trim());
+            }
+
+            document.getElementById('btnSearch').addEventListener('click', () => {
+                const inputVal = document.getElementById('refInput').value.trim().toUpperCase();
+                if(inputVal) {
+                    fetchOrderStatus(inputVal);
+                }
+            });
+        });
+
+        async function fetchOrderStatus(referenceCode) {
+            const loader = document.getElementById('loader');
+            const statusCard = document.getElementById('statusCard');
+            const errorCard = document.getElementById('errorCard');
+
+            loader.classList.remove('hidden');
+            statusCard.classList.add('hidden');
+            errorCard.classList.add('hidden');
+
+            try {
+                // تعديل الاستعلام للبحث بالحقل الصحيح المخزن بـ Firestore وهو referenceNumber
+                const q = query(collection(db, "bookings"), where("referenceNumber", "==", referenceCode));
+                const querySnapshot = await getDocs(q);
+
+                loader.classList.add('hidden');
+
+                if (!querySnapshot.empty) {
+                    const orderData = querySnapshot.docs[0].data();
+                    
+                    statusCard.classList.remove('hidden');
+                    document.getElementById('refDisplay').innerText = `RÉF: ${referenceCode}`;
+                    document.getElementById('trackDest').innerText = "E-VISA " + (orderData.destination ? orderData.destination.toUpperCase() : "---");
+                    
+                    const clientName = orderData.allTravelers && orderData.allTravelers[0] ? `${orderData.allTravelers[0].nom} ${orderData.allTravelers[0].prenom}` : "Client";
+                    document.getElementById('trackName').innerText = clientName;
+                    
+                    document.getElementById('methodBadge').innerText = orderData.method === 'ccp' ? 'BaridiMob / CCP' : 'Au Bureau';
+                    
+                    updateTimeline(orderData.status || "received");
+                } else {
+                    errorCard.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error Firebase:", error);
+                loader.classList.add('hidden');
+                alert("Erreur de connexion.");
+            }
+        }
+
+        function updateTimeline(status) {
+            const states = ['received', 'confirmed', 'processing', 'ready'];
+            states.forEach(s => {
+                const circle = document.getElementById(`circle-${s}`);
+                const text = document.getElementById(`text-${s}`);
+                
+                circle.classList.remove('bg-pink-600');
+                circle.classList.add('bg-slate-300');
+                
+                text.classList.remove('text-blue-900');
+                text.classList.add('text-slate-400');
+            });
+
+            if (status === 'received') {
+                activateStep('received');
+            } else if (status === 'confirmed') {
+                activateStep('received');
+                activateStep('confirmed');
+            } else if (status === 'processing') {
+                activateStep('received');
+                activateStep('confirmed');
+                activateStep('processing');
+            } else if (status === 'ready') {
+                activateStep('received');
+                activateStep('confirmed');
+                activateStep('processing');
+                activateStep('ready');
+            }
+        }
+
+        function activateStep(id) {
+            const circle = document.getElementById(`circle-${id}`);
+            const text = document.getElementById(`text-${id}`);
+            
+            circle.classList.remove('bg-slate-300');
+            circle.classList.add('bg-pink-600');
+            
+            text.classList.remove('text-slate-400');
+            text.classList.add('text-blue-900');
+        }
+    </script>
+</body>
+</html>

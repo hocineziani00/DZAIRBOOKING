@@ -151,18 +151,17 @@
 
     <script>
         const visaData = [
-            { id: 'egypt', name: 'Égypte', flag: 'https://flagcdn.com/w80/eg.png', options: [
-                { title: 'E-Visa Égypte 30 Jours (Entrée Simple)', price: '3.500,00 DZD', delay: '3-5 Jours', docs: ['Scan du Passeport', 'Photo fond blanc'], cond: 'Le passeport doit être valide 6 months après la date de retour.' }
+            { id: 'egypte', name: 'Égypte', flag: 'https://flagcdn.com/w80/eg.png', options: [
+                { title: 'Visa Touristique Égypte 30 Jours (Entrée Simple)', price: 16000, delay: '3-5 Jours', docs: ['Scan du Passeport', 'Photo fond blanc'], cond: 'Le passeport doit être valide 6 mois après la date de retour.' }
             ]},
             { id: 'turquie', name: 'Turquie', flag: 'https://flagcdn.com/w80/tr.png', options: [
-                { title: 'E-Visa Turquie B1 (Entrée Simple)', price: '12.500,00 DZD', delay: '24h', docs: ['Scan Passeport', 'Visa Schengen/USA valide'], cond: 'Âge entre 18 et 35 ans requis pour cette catégorie.' }
+                { title: 'E-Visa Turquie B1 (Entrée Simple)', price: 18000, delay: '24h', docs: ['Scan Passeport', 'Visa Schengen/USA valide'], cond: 'Âge entre 18 et 35 ans requis pour cette catégorie.' }
             ]},
             { id: 'oman', name: 'Oman', flag: 'https://flagcdn.com/w80/om.png', options: [
-                { title: 'E-Visa Oman 10 Jours', price: '5.000,00 DZD', delay: '48h', docs: ['Scan du Passeport'], cond: 'Entrée unique.' }
+                { title: 'E-Visa Oman 10 Jours', price: 22000, delay: '48h', docs: ['Scan du Passeport'], cond: 'Entrée unique.' }
             ]},
-            { id: 'azerbaijan', name: 'Azerbaïdjan', flag: 'https://flagcdn.com/w80/az.png', options: [
-                { title: 'E-Visa Azerbaïdjan Standard', price: '9.500,00 DZD', delay: '3-5 Jours', docs: ['Scan Passeport', 'Réservation d’hôtel'], cond: 'Le passeport doit être valide plus de 6 mois.' },
-                { title: 'E-Visa Azerbaïdjan Express', price: '19.000,00 DZD', delay: '24h', docs: ['Scan Passeport'], cond: 'Traitement prioritaire en 24h.' }
+            { id: 'dubai', name: 'Dubaï', flag: 'https://flagcdn.com/w80/ae.png', options: [
+                { title: 'Visa Touristique Dubaï 30 Jours', price: 29000, delay: '3-5 Jours', docs: ['Scan du Passeport', 'Photo fond blanc'], cond: 'Le passeport doit être valide plus de 6 mois.' }
             ]}
         ];
 
@@ -186,6 +185,8 @@
             if(element) element.classList.add('active');
 
             const country = visaData.find(c => c.id === id);
+            if(!country) return;
+
             document.getElementById('badgeName').innerText = country.name;
             document.getElementById('badgeFlag').src = country.flag;
 
@@ -196,11 +197,13 @@
                 const isOpen = idx === 0;
                 if(isOpen) selectedVisa = opt;
                 
+                const formattedPrice = Number(opt.price).toLocaleString('fr-FR') + " DZD";
+
                 area.innerHTML += `
                     <div class="visa-box">
                         <div class="visa-header ${isOpen ? '' : 'inactive'}" id="h-${idx}" onclick="openVisa(${idx})">
                             <span class="uppercase font-black tracking-tight italic">${opt.title}</span>
-                            <span>${opt.price} / 1 Personne</span>
+                            <span>${formattedPrice} / 1 Personne</span>
                         </div>
                         <div id="b-${idx}" class="visa-body ${isOpen ? 'open' : ''}">
                             <div class="flex mb-6 border-b">
@@ -221,7 +224,9 @@
         }
 
         function openVisa(idx) {
-            const countryId = document.querySelector('.flag-item.active').id.replace('flag-', '');
+            const activeFlag = document.querySelector('.flag-item.active');
+            if(!activeFlag) return;
+            const countryId = activeFlag.id.replace('flag-', '');
             const country = visaData.find(c => c.id === countryId);
             selectedVisa = country.options[idx];
 
@@ -232,7 +237,9 @@
         }
 
         function setTab(idx, type) {
-            const countryId = document.querySelector('.flag-item.active').id.replace('flag-', '');
+            const activeFlag = document.querySelector('.flag-item.active');
+            if(!activeFlag) return;
+            const countryId = activeFlag.id.replace('flag-', '');
             const country = visaData.find(c => c.id === countryId);
             const opt = country.options[idx];
             const content = document.getElementById(`c-${idx}`);
@@ -253,19 +260,22 @@
             }
         }
 
-        // الوظيفة المحدثة لضمان التوافق التام
         function proceed() { 
             if(!selectedVisa) {
                 alert("Veuillez sélectionner un type de visa.");
                 return;
             }
 
+            const paxCount = parseInt(document.getElementById('tPax').value) || 1;
+            const singlePrice = parseFloat(selectedVisa.price);
+
             const visaInfo = {
-                destination: document.getElementById('badgeName').innerText, // تم التغيير لـ destination ليتطابق مع صفحة المراجعة
-                flag: document.getElementById('badgeFlag').src,             // حفظ رابط العلم
+                destination: document.getElementById('badgeName').innerText,
+                flag: document.getElementById('badgeFlag').src,
                 title: selectedVisa.title,
-                price: selectedVisa.price,
-                pax: document.getElementById('tPax').value,
+                singlePrice: singlePrice,
+                totalPrice: singlePrice * paxCount,
+                pax: paxCount,
                 date: document.getElementById('tDate').value,
                 docType: document.getElementById('tDocType').value,
                 nationality: document.getElementById('tNation').value,
@@ -282,10 +292,26 @@
             visaData.forEach(c => {
                 side.innerHTML += `<div class="flag-item" id="flag-${c.id}" onclick="selectCountry('${c.id}')"><img src="${c.flag}"><span>${c.name}</span></div>`;
             });
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('tDate').min = todayStr;
+
+            const savedData = localStorage.getItem('visaBooking');
+            let finalType = 'turquie';
+            let finalDate = todayStr;
+
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                if (parsed.destinationKey) finalType = parsed.destinationKey;
+                if (parsed.date) finalDate = parsed.date;
+                if (parsed.pax) document.getElementById('tPax').value = parsed.pax;
+            }
+
             const params = new URLSearchParams(window.location.search);
-            const type = params.get('type') || 'turquie';
+            const type = params.get('type') || finalType;
+            
             selectCountry(type);
-            document.getElementById('tDate').min = new Date().toISOString().split('T')[0];
+            document.getElementById('tDate').value = finalDate;
         };
     </script>
 </body>

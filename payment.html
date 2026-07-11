@@ -34,11 +34,10 @@
         .btn-confirm { background: #1e3a8a; color: white; padding: 1rem; border-radius: 1rem; font-weight: 600; width: 100%; transition: 0.3s; }
         .btn-confirm:hover { background: #162d6d; }
 
-        .sub-title-official { font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 2px; font-size: 11px; }
-        .sub-text-official { color: #6b7280; font-weight: 500; font-size: 11px; margin-bottom: 8px; }
+        .sub-title-official { font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 2px; font-size: 11px; margin-bottom: 8px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col" onclick="handleGlobalClick(event)">
+<body class="min-h-screen flex flex-col" id="mainBody">
 
     <nav class="container mx-auto p-6 flex flex-col md:flex-row justify-between items-center gap-6">
         <div class="logo-wrapper" onclick="location.href='index.html'">
@@ -67,29 +66,29 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div class="space-y-4">
-                <div id="card-agence" class="payment-card p-6" onclick="toggleMethod('agence', event)">
+                <div id="card-agence" class="payment-card p-6">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4"><i class="fas fa-map-marker-alt text-blue-600"></i><h3 class="font-black text-xs uppercase text-slate-700">Paiement en Agence</h3></div>
                         <i class="fas fa-chevron-down text-gray-300" id="icon-agence"></i>
                     </div>
                     <div class="method-details">
                         <p class="sub-title-official">📍 Siège Social:</p>
-                        <p class="sub-text-official">Lotissement Haniche ilots 93, Bordj Bou Arreridj, Algérie.</p>
+                        <p class="text-[11px] text-[#6b7280] font-medium mb-2">Lotissement Haniche ilots 93, Bordj Bou Arreridj, Algérie.</p>
                         <p class="sub-title-official">🕒 Horaires d'ouverture:</p>
-                        <p class="sub-text-official">Du Samedi au Jeudi: 09:00 - 17:00</p>
+                        <p class="text-[11px] text-[#6b7280] font-medium mb-2">Du Samedi au Jeudi: 09:00 - 17:00</p>
                     </div>
                 </div>
 
-                <div id="card-ccp" class="payment-card p-6" onclick="toggleMethod('ccp', event)">
+                <div id="card-ccp" class="payment-card p-6">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-4"><i class="fas fa-university text-yellow-600"></i><h3 class="font-black text-xs uppercase text-slate-700">BaridiMob / CCP</h3></div>
                         <i class="fas fa-chevron-down text-gray-300" id="icon-ccp"></i>
                     </div>
                     <div class="method-details">
                         <p class="sub-title-official">💳 Numéro CCP:</p>
-                        <p class="sub-text-official">0023456789 <span class="text-pink-600 italic ml-1">Clé: 45</span></p>
+                        <p class="text-[11px] text-[#6b7280] font-medium mb-2">0023456789 <span class="text-pink-600 italic ml-1">Clé: 45</span></p>
                         <p class="sub-title-official">📱 RIP BaridiMob:</p>
-                        <p class="sub-text-official">00799999002345678912</p>
+                        <p class="text-[11px] text-[#6b7280] font-medium mb-2">00799999002345678912</p>
                     </div>
                 </div>
             </div>
@@ -97,8 +96,13 @@
             <div class="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 h-fit">
                 <h3 class="text-[11px] font-normal uppercase italic tracking-[0.2em] text-gray-400 border-b pb-4 mb-6">Résumé de la transaction</h3>
                 <div class="space-y-4 text-[11px] text-gray-600 uppercase">
+                    <!-- حقل الرقم المرجعي الجديد المؤمن للزبون لتأكيد الجدية والتنظيم -->
+                    <div class="flex justify-between bg-pink-50 p-2 rounded-lg border border-pink-100">
+                        <span class="text-pink-600 font-black">N° de Référence :</span>
+                        <span id="resReference" class="font-black text-pink-600">---</span>
+                    </div>
                     <div class="flex justify-between"><span>Service :</span><span id="resService" class="font-bold text-blue-900 italic">---</span></div>
-                    <div class="cursor-pointer" onclick="toggleTravellers(event)">
+                    <div id="paxClickzone" class="cursor-pointer">
                         <div class="flex justify-between"><span>Client :</span><span class="text-blue-900 font-bold"><span id="resPax">01</span> <i class="fas fa-chevron-down text-pink-600 ml-1"></i></span></div>
                         <div id="travellersList" class="travellers-dropdown"></div>
                     </div>
@@ -107,7 +111,7 @@
                     <p class="text-[9px] text-gray-400 font-bold uppercase mb-1">Total à régler</p>
                     <p id="resTotal" class="text-4xl font-[950] text-blue-900">0 <span class="text-lg text-pink-600 italic">DZD</span></p>
                 </div>
-                <button onclick="confirmOrder()" class="btn-confirm uppercase tracking-widest">Confirmer la commande</button>
+                <button id="btnConfirm" class="btn-confirm uppercase tracking-widest">Confirmer la commande</button>
                 <p class="text-[8px] font-bold text-gray-400 text-center mt-3 uppercase">TRANSACTION SÉCURISÉE PAR DZAIR BOOKING</p>
             </div>
         </div>
@@ -125,28 +129,73 @@
         </div>
     </footer>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNR11GVPimbP_p-cT-EIBn0AzOd05_Np0",
+            authDomain: "dzair-booking.firebaseapp.com",
+            projectId: "dzair-booking",
+            storageBucket: "dzair-booking.firebasestorage.app",
+            messagingSenderId: "1004941084286",
+            appId: "1:1004941084286:web:329aa5fb5c3f4e7e603a2f",
+            measurementId: "G-RRYDNFZT6N"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         let bookingData = JSON.parse(localStorage.getItem('visaBooking')) || null;
         let selectedMethod = "";
 
-        window.onload = () => {
+        document.addEventListener("DOMContentLoaded", () => {
             if (!bookingData) { 
                 window.location.href = "visa.html"; 
                 return; 
             }
+
+            // تأمين جلب واستقرار الرقم المرجعي المولد سابقاً
+            if(!bookingData.referenceNumber) {
+                bookingData.referenceNumber = "DZ-2026-" + Math.floor(1000 + Math.random() * 9000);
+                localStorage.setItem('visaBooking', JSON.stringify(bookingData));
+            }
+
+            // عرض البيانات في الواجهة
+            document.getElementById('resReference').innerText = bookingData.referenceNumber;
             document.getElementById('resService').innerText = "E-Visa " + (bookingData.destination || "---");
             document.getElementById('resPax').innerText = String(bookingData.pax || 1).padStart(2, '0');
             const total = Math.floor(parseFloat(bookingData.finalAmount || 0));
             document.getElementById('resTotal').innerHTML = `${total.toLocaleString('fr-FR')} <span class="text-lg text-pink-600 italic">DZD</span>`;
 
             const list = document.getElementById('travellersList');
-            const pricePerOne = total / (bookingData.pax || 1);
             if(bookingData.allTravelers) {
+                const pricePerOne = total / (bookingData.pax || 1);
                 bookingData.allTravelers.forEach(t => {
                     list.innerHTML += `<div class="flex justify-between py-2 border-b border-gray-50 text-[10px] italic text-gray-400"><span>${t.nom} ${t.prenom}</span><span class="font-bold text-blue-900">${pricePerOne.toLocaleString()} DZD</span></div>`;
                 });
             }
-        };
+
+            // ربط الأزرار والبطاقات
+            document.getElementById('card-agence').addEventListener('click', (e) => toggleMethod('agence', e));
+            document.getElementById('card-ccp').addEventListener('click', (e) => toggleMethod('ccp', e));
+            document.getElementById('btnConfirm').addEventListener('click', () => confirmOrder());
+            
+            document.getElementById('paxClickzone').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('travellersList').classList.toggle('open');
+            });
+
+            document.getElementById('mainBody').addEventListener('click', (e) => {
+                if (!e.target.closest('.payment-card')) {
+                    document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active'));
+                    selectedMethod = "";
+                }
+                if (!e.target.closest('#travellersList') && !e.target.closest('#paxClickzone')) {
+                    document.getElementById('travellersList').classList.remove('open');
+                }
+            });
+        });
 
         function toggleMethod(method, event) {
             event.stopPropagation();
@@ -161,30 +210,25 @@
             }
         }
 
-        function toggleTravellers(event) {
-            event.stopPropagation();
-            document.getElementById('travellersList').classList.toggle('open');
-        }
-
-        function handleGlobalClick(event) {
-            if (!event.target.closest('.payment-card')) {
-                document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active'));
-                selectedMethod = "";
-            }
-            if (!event.target.closest('#travellersList') && !event.target.closest('.cursor-pointer')) {
-                document.getElementById('travellersList').classList.remove('open');
-            }
-        }
-
-        function confirmOrder() {
+        async function confirmOrder() {
             if (!selectedMethod || selectedMethod === "") { 
-                alert("Attention: Veuillez sélectionner و فتح وسيلة الدفع للمواصلة."); 
+                alert("Attention: Veuillez sélectionner et ouvrir un mode de paiement pour continuer."); 
                 return; 
             }
+            
             bookingData.method = selectedMethod;
-            bookingData.reference = "DZA-" + Math.floor(100000 + Math.random() * 900000);
-            localStorage.setItem('finalOrder', JSON.stringify(bookingData));
-            window.location.href = "thanks.html";
+            bookingData.status = "received";
+            bookingData.createdAt = new Date();
+
+            try {
+                // إرسال البيانات النهائية الموحدة إلى الفايربيس
+                await addDoc(collection(db, "bookings"), bookingData);
+                localStorage.setItem('finalOrder', JSON.stringify(bookingData));
+                window.location.href = "thanks.html";
+            } catch (e) {
+                console.error("Firebase Error: ", e);
+                alert("Erreur lors de la sauvegarde de la commande. Veuillez réessayer.");
+            }
         }
     </script>
 </body>

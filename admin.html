@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;700;900&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; color: #1e3a8a; }
+        .table-row-animate { transition: all 0.2s ease-in-out; }
+        .table-row-animate:hover { background-color: #f8fafc; transform: scale(1.005); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <div class="w-full md:w-64 bg-blue-900 text-white flex flex-col p-6 shadow-xl">
+        <div class="text-2xl font-black italic uppercase tracking-tighter mb-8 border-b border-blue-800 pb-4">
+            DzAir<span class="text-pink-500">Admin</span>
+        </div>
+        <nav class="space-y-2 flex-grow">
+            <a href="#" class="flex items-center space-x-3 bg-pink-600 text-white p-3 rounded-xl font-bold text-sm">
+                <i class="fas fa-passport w-5 text-center"></i>
+                <span>Demandes E-Visas</span>
+            </a>
+            <a href="javascript:void(0)" onclick="alert('Bientôt disponible')" class="flex items-center space-x-3 text-blue-200 hover:bg-blue-800 p-3 rounded-xl font-bold text-sm transition">
+                <i class="fas fa-plane w-5 text-center"></i>
+                <span>Gestion Vols</span>
+            </a>
+        </nav>
+        <div class="text-[10px] text-blue-400 font-bold uppercase mt-auto pt-4 border-t border-blue-800">
+            © 2026 DzAir Booking
+        </div>
+    </div>
+
+    <div class="flex-grow p-6 md:p-10 overflow-x-hidden">
+        
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-black uppercase text-blue-900 tracking-tight">Gestion des <span class="text-pink-600">Demandes</span></h1>
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">E-Visas & Documents</p>
+            </div>
+            <button id="btnRefresh" class="bg-white border border-slate-200 text-blue-900 px-5 py-2.5 rounded-xl font-black text-xs uppercase shadow-sm hover:bg-slate-50 transition flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i> Actualiser
+            </button>
+        </div>
+
+        <div id="adminLoader" class="text-center py-20">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-pink-600"></i>
+            <p class="text-xs font-bold text-slate-400 mt-3 uppercase">Chargement des dossiers...</p>
+        </div>
+
+        <div id="tableContainer" class="hidden bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-wider border-b">
+                            <th class="p-5">Référence / Date et Heure</th>
+                            <th class="p-5">Client Principal</th>
+                            <th class="p-5">Destination / Pax</th>
+                            <th class="p-5">Paiement Total</th>
+                            <th class="p-5">Statut Actuel</th>
+                            <th class="p-5 text-center">Actions / Changer Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody" class="divide-y text-xs font-bold text-blue-900">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="noDataCard" class="hidden bg-white rounded-3xl p-12 text-center border shadow-sm">
+            <i class="fas fa-folder-open text-slate-300 text-4xl mb-3"></i>
+            <p class="text-sm font-black text-slate-400 uppercase">Aucune demande enregistrée</p>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="fixed inset-0 bg-blue-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-[32px] max-w-2xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center pb-4 border-b">
+                <div>
+                    <h3 class="text-lg font-black text-blue-900 uppercase">Détails des Voyageurs</h3>
+                    <p id="modalRefTitle" class="text-[11px] font-bold text-pink-600 uppercase tracking-wider mt-0.5">RÉF: ------</p>
+                </div>
+                <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-pink-600 transition p-2 text-lg">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="overflow-y-auto py-4 space-y-4 flex-grow pr-1"></div>
+            <div class="pt-4 border-t flex justify-end">
+                <button onclick="closeDetailsModal()" class="bg-blue-900 text-white px-6 py-2 rounded-xl font-black text-xs uppercase hover:bg-pink-600 transition">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="notificationSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-600.wav" preload="auto"></audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, updateDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNR11GVPimbP_p-cT-EIBn0AzOd05_Np0",
+            authDomain: "dzair-booking.firebaseapp.com",
+            projectId: "dzair-booking",
+            storageBucket: "dzair-booking.firebasestorage.app",
+            messagingSenderId: "1004941084286",
+            appId: "1:1004941084286:web:329aa5fb5c3f4e7e603a2f",
+            measurementId: "G-RRYDNFZT6N"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let cachedBookings = {}; 
+        let initialLoadDone = false;
+        let previousDocsCount = 0;
+
+        window.onload = () => {
+            listenToAllBookings();
+            document.getElementById('btnRefresh').addEventListener('click', () => {
+                location.reload(); 
+            });
+        };
+
+        function listenToAllBookings() {
+            const loader = document.getElementById('adminLoader');
+            const container = document.getElementById('tableContainer');
+            const noData = document.getElementById('noDataCard');
+            const tbody = document.getElementById('bookingsTableBody');
+
+            const q = query(collection(db, "bookings"), orderBy("createdAt", "desc"));
+
+            onSnapshot(q, (querySnapshot) => {
+                loader.classList.add('hidden');
+                tbody.innerHTML = '';
+                cachedBookings = {}; 
+
+                if (querySnapshot.empty) {
+                    container.classList.add('hidden');
+                    noData.classList.remove('hidden');
+                    previousDocsCount = 0;
+                    initialLoadDone = true;
+                    return;
+                }
+
+                noData.classList.add('hidden');
+                container.classList.remove('hidden');
+
+                if (initialLoadDone && querySnapshot.size > previousDocsCount) {
+                    document.getElementById('notificationSound').play().catch(()=>{});
+                }
+                
+                previousDocsCount = querySnapshot.size;
+                initialLoadDone = true;
+
+                querySnapshot.forEach((documentSnapshot) => {
+                    const b = documentSnapshot.data();
+                    const docId = documentSnapshot.id;
+                    cachedBookings[docId] = b; 
+
+                    const tr = document.createElement('tr');
+                    tr.className = "table-row-animate border-b last:border-0";
+
+                    let dateTimeStr = '---';
+                    if (b.createdAt) {
+                        let dateObj;
+                        if (typeof b.createdAt.toDate === 'function') {
+                            dateObj = b.createdAt.toDate();
+                        } else if (b.createdAt instanceof Date) {
+                            dateObj = b.createdAt;
+                        } else {
+                            dateObj = new Date(b.createdAt);
+                        }
+
+                        if (!isNaN(dateObj.getTime())) {
+                            const datePart = dateObj.toLocaleDateString('fr-FR');
+                            const timePart = dateObj.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                            dateTimeStr = `${datePart} à ${timePart}`;
+                        }
+                    }
+
+                    const mainClient = b.allTravelers && b.allTravelers[0] ? `${b.allTravelers[0].nom || ''} ${b.allTravelers[0].prenom || ''}` : 'Inconnu';
+                    const totalAmount = Math.floor(parseFloat(b.finalAmount || 0)).toLocaleString('fr-FR') + " DZD";
+                    
+                    // استخدام المتغير الصحيح الموحد للنظام referenceNumber
+                    const refCode = b.referenceNumber || b.reference || "---";
+
+                    let statusBadge = '';
+                    if (b.status === 'received') statusBadge = '<span class="bg-amber-50 text-amber-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Reçue</span>';
+                    else if (b.status === 'confirmed') statusBadge = '<span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Confirmée</span>';
+                    else if (b.status === 'processing') statusBadge = '<span class="bg-purple-50 text-purple-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">En Cours</span>';
+                    else if (b.status === 'ready') statusBadge = '<span class="bg-green-50 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Prête</span>';
+
+                    tr.innerHTML = `
+                        <td class="p-5">
+                            <span class="text-sm font-black tracking-wider text-blue-900">${refCode}</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5 font-semibold"><i class="far fa-clock mr-1"></i>${dateTimeStr}</p>
+                        </td>
+                        <td class="p-5 uppercase text-slate-700 font-bold">${mainClient}</td>
+                        <td class="p-5 uppercase">
+                            <span class="text-pink-600 font-black">E-VISA ${b.destination || '---'}</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${String(b.pax || 1).padStart(2, '0')} Voyageur(s)</p>
+                        </td>
+                        <td class="p-5">
+                            <span class="text-slate-700">${totalAmount}</span>
+                            <p class="text-[10px] text-slate-400 mt-0.5 uppercase">${b.method === 'ccp' ? 'BaridiMob / CCP' : 'Au Bureau'}</p>
+                        </td>
+                        <td class="p-5">${statusBadge}</td>
+                        <td class="p-5 text-center flex items-center justify-center space-x-2 mt-2">
+                            <select onchange="changeStatus('${docId}', this.value)" class="bg-slate-50 border text-[11px] font-bold rounded-xl px-2 py-1.5 outline-none text-blue-900 focus:border-pink-500">
+                                <option value="received" ${b.status === 'received' ? 'selected' : ''}>1. Reçue</option>
+                                <option value="confirmed" ${b.status === 'confirmed' ? 'selected' : ''}>2. Confirmée</option>
+                                <option value="processing" ${b.status === 'processing' ? 'selected' : ''}>3. En cours</option>
+                                <option value="ready" ${b.status === 'ready' ? 'selected' : ''}>4. Prête</option>
+                            </select>
+                            
+                            <button onclick="openDetailsModal('${docId}')" class="text-slate-400 hover:text-pink-600 p-1.5 text-sm transition" title="Voir les fichiers">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }, (error) => {
+                console.error("Live Synchronization Error:", error);
+            });
+        }
+
+        window.changeStatus = async (docId, newStatus) => {
+            try {
+                const docRef = doc(db, "bookings", docId);
+                await updateDoc(docRef, { status: newStatus });
+                document.getElementById('notificationSound').play().catch(()=>{});
+            } catch (error) {
+                console.error("Error updating status:", error);
+                alert("Erreur lors de la mise à jour du statut.");
+            }
+        };
+
+        window.openDetailsModal = (docId) => {
+            const data = cachedBookings[docId];
+            if(!data) return;
+
+            const refCode = data.referenceNumber || data.reference || "---";
+            document.getElementById('modalRefTitle').innerText = `RÉFÉRENCE: ${refCode}`;
+            const container = document.getElementById('modalContent');
+            container.innerHTML = '';
+
+            if(data.allTravelers && data.allTravelers.length > 0) {
+                data.allTravelers.forEach((t, index) => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3";
+                    
+                    let infoRowsHtml = '';
+                    const passportNum = t.passport || '---';
+                    const bucket = "dzair-booking.firebasestorage.app";
+
+                    // جلب روابط الملفات المرفوعة بشكل ديناميكي من حقول الملفات في قاعدة البيانات إن وجدت لتفادي مشاكل الامتداد
+                    const passportUrl = t.passportFileUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('passports/' + passportNum + '.jpg')}?alt=media`;
+                    const photoUrl = t.photoFileUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('photos/' + passportNum + '.jpg')}?alt=media`;
+
+                    Object.keys(t).forEach(key => {
+                        const val = t[key];
+                        if (!val || typeof val === 'object' || String(val).startsWith('http') || key.toLowerCase().includes('url')) return;
+
+                        let labelFormatted = key.toUpperCase();
+                        if(key === 'nom') labelFormatted = "Nom";
+                        else if(key === 'prenom') labelFormatted = "Prénom";
+                        else if(key === 'passport') labelFormatted = "N° Passeport";
+                        else if(key === 'email') labelFormatted = "Email";
+                        else if(key === 'birthDate') labelFormatted = "Date de Naissance";
+                        else if(key === 'issueDate') labelFormatted = "Date Délivrance";
+                        else if(key === 'expiryDate') labelFormatted = "Date Expiration";
+                        else if(key === 'authority') labelFormatted = "Autorité";
+                        else if(key === 'gender') labelFormatted = "Sexe";
+
+                        infoRowsHtml += `
+                            <p class="text-slate-500">${labelFormatted}:</p>
+                            <p class="font-bold text-blue-900 uppercase break-all">${val}</p>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center border-b border-slate-200/60 pb-2">
+                            <span class="text-xs font-black text-blue-900 uppercase">Voyageur N°${String(index+1).padStart(2, '0')}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            ${infoRowsHtml}
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2 border-t border-dashed border-slate-200">
+                            <a href="${passportUrl}" target="_blank" class="bg-blue-900 hover:bg-pink-600 text-white text-[10px] font-black uppercase px-3 py-2 rounded-xl transition inline-flex items-center space-x-1">
+                                <i class="fas fa-passport"></i> <span>Voir Passeport</span>
+                            </a>
+                            <a href="${photoUrl}" target="_blank" class="bg-pink-600 hover:bg-blue-900 text-white text-[10px] font-black uppercase px-3 py-2 rounded-xl transition inline-flex items-center space-x-1">
+                                <i class="far fa-image"></i> <span>Voir Photo</span>
+                            </a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4 font-bold uppercase">Aucune donnée passager trouvée.</p>`;
+            }
+
+            document.getElementById('detailsModal').classList.remove('hidden');
+        };
+
+        window.closeDetailsModal = () => {
+            document.getElementById('detailsModal').classList.add('hidden');
+        };
+    </script>
+</body>
+</html>

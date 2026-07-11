@@ -72,11 +72,13 @@
         // تفعيل معرف الحساب الموثق الخاص بك مباشرة
         emailjs.init("UUY_2Ka2enpDfk8kd");
 
-        const bookingData = JSON.parse(localStorage.getItem('finalOrder')) || JSON.parse(localStorage.getItem('visaBooking'));
+        // جلب البيانات مع التأكد من قراءة الـ المفاتيح المتاحة في المتصفح
+        const bookingData = JSON.parse(localStorage.getItem('visaBooking')) || JSON.parse(localStorage.getItem('finalOrder'));
         const phone = "213657133118";
 
         window.onload = () => {
             if (!bookingData) {
+                alert("تنبيه الفحص: لم يتم العثور على أي بيانات حجز في الـ localStorage لهذا المتصفح!");
                 window.location.href = "index.html";
                 return;
             }
@@ -129,10 +131,14 @@
 
         async function sendConfirmationEmail(refNumber) {
             const mainTraveler = bookingData.allTravelers && bookingData.allTravelers[0] ? bookingData.allTravelers[0] : null;
-            const clientEmail = mainTraveler ? mainTraveler.email : null;
+            // محاولة قراءة الإيميل بكلا الصيغتين لضمان التوافق التام
+            const clientEmail = mainTraveler ? (mainTraveler.email || mainTraveler.AdresseEmail) : null;
             const clientName = mainTraveler ? `${mainTraveler.nom} ${mainTraveler.prenom}` : "Client";
             
-            if (!clientEmail) return; 
+            if (!clientEmail) {
+                alert("تنبيه الفحص: تم قراءة بيانات المسافر ولكن حقل الإيميل فارغ أو مسمّى بشكل مختلف في الـ Form!");
+                return; 
+            }
 
             const paymentMethodText = bookingData.method === 'ccp' ? 'BaridiMob / CCP' : 'Au Bureau (Agence)';
             const destinationText = bookingData.destination ? bookingData.destination.toUpperCase() : "---";
@@ -145,13 +151,11 @@
                 payment_method: paymentMethodText
             };
 
-            // تم وضع الـ Service ID الخاص بك 'service_mzevagi'
-            // ملاحظة: تأكد أن معرف القالب أدناه هو 'template_j6f5r8q'، إذا غيرته في المنصة يمكنك تعديله هنا فقط.
             emailjs.send('service_mzevagi', 'template_j6f5r8q', templateParams)
                 .then(() => {
-                    console.log('Email envoyé avec succès au client !');
+                    alert("🎉 نجاح: تم إرسال الإيميل بنجاح من الموقع إلى الحساب: " + clientEmail);
                 }, (error) => {
-                    console.error('Erreur lors de l\'envoi de l\'email:', error);
+                    alert("❌ خطأ من منصة EmailJS: " + JSON.stringify(error));
                 });
         }
 

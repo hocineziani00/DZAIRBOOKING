@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;900&display=swap');
         
         html { zoom: 90%; }
 
@@ -100,7 +100,7 @@
             <form id="visaForm" class="space-y-6" onsubmit="validateForm(event)">
                 
                 <div class="form-card p-8 md:p-10">
-                    <h2 class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                    <h2 id="sectionTitleCivil" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
                         <i class="fas fa-user-circle mr-3 text-pink-600 text-lg"></i> 01. État Civil du Voyageur
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,7 +140,7 @@
                 </div>
 
                 <div class="form-card p-8 md:p-10">
-                    <h2 class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                    <h2 id="sectionTitleDoc" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
                         <i class="fas fa-passport mr-3 text-pink-600 text-lg"></i> 02. Détails du Document
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="form-card p-8 md:p-10">
-                    <h2 class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                    <h2 id="sectionTitleUpload" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
                         <i class="fas fa-file-upload mr-3 text-pink-600 text-lg"></i> 03. Documents (Max 10MB)
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -228,9 +228,15 @@
             const titleElement = document.getElementById('passengerTitle');
             const subTitle = document.getElementById('subTitle');
             const btnText = document.getElementById('btnText');
+            
+            // تحديث أرقام الأقسام ديناميكياً لتتماشى مع الفرز الإحترافي للمسافر الحالي
+            const indexStr = String(currentPaxIndex).padStart(2, '0');
+            document.getElementById('sectionTitleCivil').innerHTML = `<i class="fas fa-user-circle mr-3 text-pink-600 text-lg"></i> ${indexStr}. État Civil du Voyageur`;
+            document.getElementById('sectionTitleDoc').innerHTML = `<i class="fas fa-passport mr-3 text-pink-600 text-lg"></i> ${indexStr}. Détails du Document`;
+            document.getElementById('sectionTitleUpload').innerHTML = `<i class="fas fa-file-upload mr-3 text-pink-600 text-lg"></i> ${indexStr}. Documents (Max 10MB)`;
 
             if (totalPax > 1) {
-                titleElement.innerHTML = `Information du Passager <span class="text-pink-600">0${currentPaxIndex}</span>`;
+                titleElement.innerHTML = `Information du Passager <span class="text-pink-600">${indexStr}</span>`;
                 subTitle.innerText = `Voyageur ${currentPaxIndex} sur ${totalPax}`;
                 btnText.innerText = currentPaxIndex === totalPax ? "Finaliser la Demande" : "Passager Suivant";
             } else {
@@ -272,20 +278,21 @@
             if (email !== confirmEmail) {
                 document.getElementById('confirmEmail').classList.add('input-error');
                 emailError.classList.remove('hidden');
+                alert("Erreur: Les adresses email ne correspondent pas.");
                 return false;
+            } else {
+                document.getElementById('confirmEmail').classList.remove('input-error');
+                emailError.classList.add('hidden');
             }
 
-            // 2. التحقق من إجبارية تحميل الملفات (التعديل الجديد)
+            // 2. التحقق من إجبارية تحميل الملفات
             const passFile = document.getElementById('passFile').files[0];
             const photoFile = document.getElementById('photoFile').files[0];
 
             if (!passFile || !photoFile) {
                 alert("Attention! Vous devez obligatoirement télécharger le scan du passeport ET la photo d'identité.");
-                
-                // تلوين الصناديق الفارغة بالأحمر لتنبيه المستخدم
                 if(!passFile) document.getElementById('box-pass').classList.add('upload-error');
                 if(!photoFile) document.getElementById('box-photo').classList.add('upload-error');
-                
                 return false;
             }
 
@@ -303,8 +310,15 @@
                 expiryDate: document.getElementById('expiryDate').value
             };
 
-            sessionData.allTravelers.push(travelerData);
+            // منع التكرار: تحديث البيانات إن وجدت بدلاً من الإضافة العشوائية
+            const existingIndex = sessionData.allTravelers.findIndex(t => t.id === currentPaxIndex);
+            if (existingIndex !== -1) {
+                sessionData.allTravelers[existingIndex] = travelerData;
+            } else {
+                sessionData.allTravelers.push(travelerData);
+            }
 
+            // 4. الانتقال للمسافر التالي أو التوجيه لصفحة الفرز النهائي
             if (currentPaxIndex < totalPax) {
                 currentPaxIndex++;
                 prepareNextForm();
@@ -318,6 +332,7 @@
             updateTitle();
             document.getElementById('visaForm').reset();
             
+            // تنظيف وإعادة تعيين صناديق التحميل بشكل سليم للمسافر التالي
             const resetBox = (id, iconClass, text) => {
                 const box = document.getElementById(id);
                 box.className = "upload-box";

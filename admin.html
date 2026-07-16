@@ -258,12 +258,12 @@
                     const bucket = "dzair-booking.firebasestorage.app";
 
                     // جلب روابط الملفات المرفوعة بشكل ديناميكي من حقول الملفات في قاعدة البيانات إن وجدت لتفادي مشاكل الامتداد
-                    const passportUrl = t.passportFileUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('passports/' + passportNum + '.jpg')}?alt=media`;
-                    const photoUrl = t.photoFileUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('photos/' + passportNum + '.jpg')}?alt=media`;
+                    const passportUrl = t.passportFileUrl || t.passportUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('passports/' + passportNum + '.jpg')}?alt=media`;
+                    const photoUrl = t.photoFileUrl || t.photoUrl || `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent('photos/' + passportNum + '.jpg')}?alt=media`;
 
                     Object.keys(t).forEach(key => {
                         const val = t[key];
-                        if (!val || typeof val === 'object' || String(val).startsWith('http') || key.toLowerCase().includes('url')) return;
+                    if (!val || typeof val === 'object' || String(val).startsWith('http') || key.toLowerCase().includes('url') || key.toLowerCase().includes('file')) return;
 
                         let labelFormatted = key.toUpperCase();
                         if(key === 'nom') labelFormatted = "Nom";

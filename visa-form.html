@@ -215,10 +215,9 @@
         </div>
     </footer>
 
-    <!-- سكريبت Firebase ومعالجة الرفع بأمان -->
+    <!-- سكريبت Firebase ومعالجة الرفع بأمان عبر ImgBB -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCNR11GVPimbP_p-cT-EIBn0AzOd05_Np0",
@@ -231,7 +230,6 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const storage = getStorage(app);
 
         let sessionData = JSON.parse(localStorage.getItem('visaBooking')) || { pax: 1, allTravelers: [] };
         if (!sessionData.allTravelers) sessionData.allTravelers = [];
@@ -265,6 +263,25 @@
             }
         }
 
+        // دالة الرفع المجانية المباشرة إلى ImgBB
+        async function uploadToImgBB(file) {
+            const apiKey = "a65e68bc2764da1018222e33a3d8d795"; // مفتاح الـ API الخاص بحمزة
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                return data.data.url; // يعيد الرابط المباشر للصورة بنجاح
+            } else {
+                throw new Error("Échec du téléversement ImgBB");
+            }
+        }
+
         window.validateFile = async function(input, boxId) {
             const box = document.getElementById(boxId);
             const file = input.files[0];
@@ -278,13 +295,8 @@
                     box.querySelector('i').className = "fas fa-spinner fa-spin text-2xl mb-2 text-blue-500";
 
                     try {
-                        const fileExtension = file.name.split('.').pop();
-                        const uniqueFileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExtension}`;
-                        const folder = boxId === 'box-pass' ? 'passports' : 'photos';
-                        const storageRef = ref(storage, `${folder}/${uniqueFileName}`);
-
-                        const snapshot = await uploadBytes(storageRef, file);
-                        const downloadURL = await getDownloadURL(snapshot.ref);
+                        // استخدام نظام الرفع الجديد المستقر والمجاني
+                        const downloadURL = await uploadToImgBB(file);
 
                         if (boxId === 'box-pass') {
                             currentPassportUrl = downloadURL;

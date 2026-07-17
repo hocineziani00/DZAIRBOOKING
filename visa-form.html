@@ -1,9 +1,225 @@
-    <!-- إضافة مكتبات Firebase المطلوبة للرفع -->
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informations Passager | DzAir Booking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght=300;400;600;900&display=swap');
+        
+        html { zoom: 90%; }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc; 
+            color: #1e3a8a;
+            background-image: 
+                linear-gradient(rgba(248, 250, 252, 0.85), rgba(248, 250, 252, 0.85)),
+                url('https://images.unsplash.com/photo-1530521954074-e64f6810b32d?q=80&w=2070&auto=format&fit=crop');
+            background-attachment: fixed;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .logo-container { position: relative; display: inline-block; cursor: pointer; }
+        .dove-icon { position: absolute; top: -18px; left: -5px; font-size: 42px; color: #60a5fa; transform: rotate(-10deg); }
+
+        .step-item { display: flex; align-items: center; gap: 8px; }
+        .step-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px; transition: 0.3s; }
+        .step-line { width: 40px; height: 2px; background: #e2e8f0; }
+        .step-active .step-circle { background: #1e3a8a; color: white; }
+        .step-completed .step-circle { background: #db2777; color: white; }
+
+        .form-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(10px); 
+            border-radius: 2rem; 
+            border: 1px solid rgba(255,255,255,0.8); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.03); 
+        }
+        
+        .input-label { display: block; font-weight: 900; text-transform: uppercase; font-size: 10px; color: #9ca3af; margin-bottom: 0.5rem; letter-spacing: 0.1em; padding-left: 0.25rem; }
+        
+        .custom-input { 
+            width: 100%; padding: 0.9rem 1.2rem; border: 1.5px solid #edf2f7; border-radius: 1rem; 
+            font-size: 14px; font-weight: 700; background: white; transition: all 0.3s; 
+        }
+        .custom-input:focus { border-color: #db2777; outline: none; box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.1); }
+        .input-error { border-color: #ef4444 !important; background: #fef2f2; }
+
+        .upload-box {
+            border: 2px dashed #e2e8f0; border-radius: 1.2rem; padding: 1.2rem; text-align: center;
+            cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.5);
+        }
+        .upload-success { border-color: #22c55e !important; background: #f0fdf4 !important; color: #166534; }
+        .upload-error { border-color: #ef4444 !important; background: #fef2f2 !important; color: #991b1b; }
+
+        .btn-next { 
+            background: #db2777; color: white; padding: 1.1rem 3.5rem; border-radius: 1rem; 
+            font-weight: 900; text-transform: uppercase; font-size: 14px; transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(219, 39, 119, 0.2);
+        }
+        .btn-next:hover { background: #1e3a8a; transform: translateY(-2px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <nav class="container mx-auto p-6 flex justify-between items-center">
+        <div class="logo-container" onclick="location.href='index.html'">
+            <i class="fas fa-dove dove-icon"></i>
+            <div class="text-3xl font-[950] text-blue-900 tracking-tighter italic uppercase">
+                DzAir<span class="text-pink-600">Booking</span>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center">
+            <div class="step-item step-completed cursor-pointer" onclick="history.back()">
+                <div class="step-circle"><i class="fas fa-check"></i></div>
+                <span class="text-[10px] font-black uppercase text-pink-600">Sélection</span>
+            </div>
+            <div class="step-line mx-2"></div>
+            <div class="step-item step-active">
+                <div class="step-circle">2</div>
+                <span class="text-[10px] font-black uppercase text-blue-900">Passager</span>
+            </div>
+            <div class="step-line mx-2"></div>
+            <div class="step-item opacity-30">
+                <div class="step-circle bg-gray-300">3</div>
+                <span class="text-[10px] font-black uppercase text-gray-500">Paiement</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-6 flex-grow">
+        <div class="max-w-4xl mx-auto">
+            <h1 id="passengerTitle" class="text-3xl font-[950] uppercase mb-1 italic border-l-8 border-pink-600 pl-4 text-blue-900">Information du Passager</h1>
+            <p id="subTitle" class="text-gray-400 font-bold text-[10px] mb-8 uppercase tracking-[0.2em] pl-6 italic">Remplissage obligatoire de tous les champs</p>
+
+            <form id="visaForm" class="space-y-6" onsubmit="window.validateForm(event)">
+                
+                <div class="form-card p-8 md:p-10">
+                    <h2 id="sectionTitleCivil" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                        <i class="fas fa-user-circle mr-3 text-pink-600 text-lg"></i> 01. État Civil du Voyageur
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="input-label">Nom (Passeport) *</label>
+                            <input type="text" id="lastName" required placeholder="NOM COMPLET" class="custom-input uppercase">
+                        </div>
+                        <div>
+                            <label class="input-label">Prénom *</label>
+                            <input type="text" id="firstName" required placeholder="PRÉNOM" class="custom-input uppercase">
+                        </div>
+                        
+                        <div>
+                            <label class="input-label">Adresse Email *</label>
+                            <input type="email" id="email" required placeholder="votre@email.com" class="custom-input">
+                        </div>
+                        <div>
+                            <label class="input-label">Confirmer l'Email *</label>
+                            <input type="email" id="confirmEmail" required placeholder="votre@email.com" class="custom-input">
+                            <span id="emailError" class="text-[9px] text-red-500 font-bold uppercase mt-1 hidden">Les emails ne correspondent pas</span>
+                        </div>
+
+                        <div>
+                            <label class="input-label">Date de naissance *</label>
+                            <input type="date" id="birthDate" required class="custom-input">
+                        </div>
+                        
+                        <div>
+                            <label class="input-label">Sexe *</label>
+                            <select id="gender" required class="custom-input">
+                                <option value="" disabled selected>Choisir le sexe...</option>
+                                <option value="F">Féminin</option>
+                                <option value="M">Masculin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card p-8 md:p-10">
+                    <h2 id="sectionTitleDoc" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                        <i class="fas fa-passport mr-3 text-pink-600 text-lg"></i> 02. Détails du Document
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="input-label">Numéro de Passeport *</label>
+                            <input type="text" id="passportNum" required placeholder="Ex: 213560000" class="custom-input uppercase">
+                        </div>
+                        <div>
+                            <label class="input-label">Autorité de délivrance *</label>
+                            <input type="text" id="authority" required placeholder="Ex: Wilaya de Bordj" class="custom-input uppercase">
+                        </div>
+                        <div>
+                            <label class="input-label">Date délivrance *</label>
+                            <input type="date" id="issueDate" required class="custom-input">
+                        </div>
+                        <div>
+                            <label class="input-label">Date d'expiration *</label>
+                            <input type="date" id="expiryDate" required class="custom-input">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card p-8 md:p-10">
+                    <h2 id="sectionTitleUpload" class="text-xs font-black text-blue-900 uppercase mb-8 flex items-center italic tracking-widest">
+                        <i class="fas fa-file-upload mr-3 text-pink-600 text-lg"></i> 03. Documents (Max 10MB)
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="upload-box" id="box-pass" onclick="document.getElementById('passFile').click()">
+                            <input type="file" id="passFile" class="hidden" accept=".pdf,.jpeg,.jpg,.png" onchange="window.validateFile(this, 'box-pass')">
+                            <i class="fas fa-id-card text-2xl text-gray-300 mb-2"></i>
+                            <p class="text-[10px] font-black text-blue-900 uppercase">Scan du Passeport *</p>
+                            <span class="text-[9px] opacity-60">PDF, JPG, PNG uniquement</span>
+                        </div>
+                        <div class="upload-box" id="box-photo" onclick="document.getElementById('photoFile').click()">
+                            <input type="file" id="photoFile" class="hidden" accept=".pdf,.jpeg,.jpg,.png" onchange="window.validateFile(this, 'box-photo')">
+                            <i class="fas fa-camera text-2xl text-gray-300 mb-2"></i>
+                            <p class="text-[10px] font-black text-blue-900 uppercase">Photo d'identité *</p>
+                            <span class="text-[9px] opacity-60">Fond blanc obligatoire</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mt-10 mb-12">
+                    <button type="button" onclick="history.back()" class="text-gray-400 font-black uppercase text-[10px] hover:text-blue-900 transition flex items-center">
+                        <i class="fas fa-chevron-left mr-2"></i> Étape précédente
+                    </button>
+                    <button type="submit" class="btn-next">
+                        <span id="btnText">Prochaine Étape</span> <i class="fas fa-arrow-right ml-3"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-gray-100 py-8 mt-auto">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left">
+                    <p class="text-[11px] font-black text-blue-900 uppercase tracking-widest">DzAir Booking International</p>
+                    <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase">Licence N°: 3450/2026 | Bordj Bou Arreridj, Algérie</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-[9px] font-black text-green-600 uppercase mb-1">
+                        <i class="fas fa-lock mr-1"></i> SSL 256-bit Encrypted
+                    </p>
+                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter">Vos données sont hautement protégées</p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-[10px] font-black text-pink-600 italic uppercase">© 2026 ALL RIGHTS RESERVED</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- سكريبت Firebase ومعالجة الرفع بأمان -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // نفس إعدادات مشروعك في Firebase لربط الـ Storage
         const firebaseConfig = {
             apiKey: "AIzaSyCNR11GVPimbP_p-cT-EIBn0AzOd05_Np0",
             authDomain: "dzair-booking.firebaseapp.com",
@@ -23,7 +239,6 @@
         let totalPax = parseInt(sessionData.pax) || 1;
         let currentPaxIndex = 1;
 
-        // متغيرات مؤقتة لحفظ روابط الملفات المرفوعة للمسافر الحالي
         let currentPassportUrl = "";
         let currentPhotoUrl = "";
 
@@ -50,7 +265,6 @@
             }
         }
 
-        // دالة الرفع التلقائي والحصول على الرابط
         window.validateFile = async function(input, boxId) {
             const box = document.getElementById(boxId);
             const file = input.files[0];
@@ -59,30 +273,25 @@
 
             if (file) {
                 if (allowedTypes.includes(file.type) && file.size <= maxSize) {
-                    // إظهار حالة جاري الرفع مؤقتاً
                     box.className = "upload-box";
                     box.querySelector('p').innerText = "Téléchargement en cours... ⏳";
                     box.querySelector('i').className = "fas fa-spinner fa-spin text-2xl mb-2 text-blue-500";
 
                     try {
-                        // إنشاء مسار فريد للملف في الـ Storage
                         const fileExtension = file.name.split('.').pop();
                         const uniqueFileName = `${Date.now()}_${Math.floor(Math.random() * 1000)}.${fileExtension}`;
                         const folder = boxId === 'box-pass' ? 'passports' : 'photos';
                         const storageRef = ref(storage, `${folder}/${uniqueFileName}`);
 
-                        // رفع الملف
                         const snapshot = await uploadBytes(storageRef, file);
                         const downloadURL = await getDownloadURL(snapshot.ref);
 
-                        // حفظ الرابط بالمتغيرات المؤقتة
                         if (boxId === 'box-pass') {
                             currentPassportUrl = downloadURL;
                         } else {
                             currentPhotoUrl = downloadURL;
                         }
 
-                        // تغيير الواجهة إلى نجاح
                         box.className = "upload-box upload-success";
                         box.querySelector('p').innerText = "Fichier validé ✔";
                         box.querySelector('i').className = "fas fa-check-circle text-2xl mb-2 text-green-500";
@@ -91,7 +300,7 @@
                         box.className = "upload-box upload-error";
                         box.querySelector('p').innerText = "Erreur de connexion ✖";
                         box.querySelector('i').className = "fas fa-exclamation-triangle text-2xl mb-2 text-red-500";
-                        alert("Erreur lors du téléchargement du fichier vers le serveur.");
+                        alert("Erreur lors du téléchargement du fichier.");
                     }
                 } else {
                     box.className = "upload-box upload-error";
@@ -120,7 +329,6 @@
                 emailError.classList.add('hidden');
             }
 
-            // التحقق من وجود الروابط الفعلية المرفوعة
             if (!currentPassportUrl || !currentPhotoUrl) {
                 alert("Attention! Veuillez attendre la fin du téléchargement sécurisé des documents.");
                 if(!currentPassportUrl) document.getElementById('box-pass').classList.add('upload-error');
@@ -128,7 +336,6 @@
                 return false;
             }
 
-            // تجميع البيانات شاملة روابط الملفات المستخرجة من الـ Storage
             const travelerData = {
                 id: currentPaxIndex,
                 nom: document.getElementById('lastName').value.toUpperCase(),
@@ -140,8 +347,8 @@
                 authority: document.getElementById('authority').value.toUpperCase(),
                 issueDate: document.getElementById('issueDate').value,
                 expiryDate: document.getElementById('expiryDate').value,
-                passportFileUrl: currentPassportUrl, // الرابط المباشر للجواز المرفوع
-                photoFileUrl: currentPhotoUrl      // الرابط المباشر للصورة المرفوعة
+                passportFileUrl: currentPassportUrl,
+                photoFileUrl: currentPhotoUrl
             };
 
             const existingIndex = sessionData.allTravelers.findIndex(t => t.id === currentPaxIndex);
@@ -161,11 +368,10 @@
         }
 
         function prepareNextForm() {
-            // تصفير روابط المسافر الحالي استعداداً للتالي
             currentPassportUrl = "";
             currentPhotoUrl = "";
 
-            updateTitle();
+            window.updateTitle();
             document.getElementById('visaForm').reset();
             
             const resetBox = (id, iconClass, text) => {
@@ -181,3 +387,5 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
+</body>
+</html>

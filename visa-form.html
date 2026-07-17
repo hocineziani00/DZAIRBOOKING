@@ -47,6 +47,7 @@
             font-size: 14px; font-weight: 700; background: white; transition: all 0.3s; 
         }
         .custom-input:focus { border-color: #db2777; outline: none; box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.1); }
+        .custom-input:readonly { background-color: #f1f5f9; color: #64748b; cursor: not-allowed; border-color: #cbd5e1; }
         .input-error { border-color: #ef4444 !important; background: #fef2f2; }
 
         .upload-box {
@@ -121,6 +122,11 @@
                             <label class="input-label">Confirmer l'Email *</label>
                             <input type="email" id="confirmEmail" required placeholder="votre@email.com" class="custom-input">
                             <span id="emailError" class="text-[9px] text-red-500 font-bold uppercase mt-1 hidden">Les emails ne correspondent pas</span>
+                        </div>
+
+                        <div>
+                            <label class="input-label">Numéro de Téléphone *</label>
+                            <input type="tel" id="phoneNumber" required placeholder="Ex: 0550123456" class="custom-input">
                         </div>
 
                         <div>
@@ -215,7 +221,6 @@
         </div>
     </footer>
 
-    <!-- سكريبت Firebase ومعالجة الرفع بأمان عبر ImgBB -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
@@ -234,13 +239,19 @@
         let sessionData = JSON.parse(localStorage.getItem('visaBooking')) || { pax: 1, allTravelers: [] };
         if (!sessionData.allTravelers) sessionData.allTravelers = [];
         
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = parseInt(urlParams.get('edit'));
+        
         let totalPax = parseInt(sessionData.pax) || 1;
-        let currentPaxIndex = 1;
+        let currentPaxIndex = editId ? editId : 1;
 
         let currentPassportUrl = "";
         let currentPhotoUrl = "";
 
-        window.onload = () => { updateTitle(); };
+        window.onload = () => { 
+            loadTravelerData(); 
+            updateTitle(); 
+        };
 
         window.updateTitle = function() {
             const titleElement = document.getElementById('passengerTitle');
@@ -261,11 +272,99 @@
                 subTitle.innerText = "Remplissage obligatoire de tous les champs";
                 btnText.innerText = "Prochaine Étape";
             }
+            
+            if (editId) {
+                btnText.innerText = "Enregistrer les modifications";
+            }
         }
 
-        // دالة الرفع المجانية المباشرة إلى ImgBB
+        function loadTravelerData() {
+            currentPassportUrl = "";
+            currentPhotoUrl = "";
+            resetUploadBox('box-pass', "fas fa-id-card text-2xl text-gray-300 mb-2", "Scan du Passeport *");
+            resetUploadBox('box-photo', "fas fa-camera text-2xl text-gray-300 mb-2", "Photo d'identité *");
+
+            const traveler = sessionData.allTravelers.find(t => t.id === currentPaxIndex);
+            
+            // تهيئة حالة حقول الإيميل لتكون قابلة للكتابة كحالة افتراضية
+            document.getElementById('email').readOnly = false;
+            document.getElementById('confirmEmail').readOnly = false;
+
+            if (traveler) {
+                document.getElementById('lastName').value = traveler.nom || "";
+                document.getElementById('firstName').value = traveler.prenom || "";
+                document.getElementById('email').value = traveler.email || "";
+                document.getElementById('confirmEmail').value = traveler.email || "";
+                document.getElementById('phoneNumber').value = traveler.phone || "";
+                document.getElementById('birthDate').value = traveler.birthDate || "";
+                document.getElementById('gender').value = traveler.gender || "";
+                document.getElementById('passportNum').value = traveler.passport || "";
+                document.getElementById('authority').value = traveler.authority || "";
+                document.getElementById('issueDate').value = traveler.issueDate || "";
+                document.getElementById('expiryDate').value = traveler.expiryDate || "";
+                
+                if (traveler.passportFileUrl) {
+                    currentPassportUrl = traveler.passportFileUrl;
+                    setUploadSuccess('box-pass', "Fichier validé ✔");
+                }
+                if (traveler.photoFileUrl) {
+                    currentPhotoUrl = traveler.photoFileUrl;
+                    setUploadSuccess('box-photo', "Fichier validé ✔");
+                }
+
+                // حتى عند التعديل، إذا كان الراكب ليس الأول، نجعل حقل الإيميل مجمدًا لحماية البيانات
+                if (currentPaxIndex > 1) {
+                    document.getElementById('email').readOnly = true;
+                    document.getElementById('confirmEmail').readOnly = true;
+                }
+            } else {
+                // تنظيف كامل لبيانات المسافر الجديد
+                document.getElementById('lastName').value = "";
+                document.getElementById('firstName').value = "";
+                document.getElementById('phoneNumber').value = "";
+                document.getElementById('birthDate').value = "";
+                document.getElementById('gender').value = "";
+                document.getElementById('passportNum').value = "";
+                document.getElementById('authority').value = "";
+                document.getElementById('issueDate').value = "";
+                document.getElementById('expiryDate').value = "";
+                
+                // التطبيق الصارم للفكرة: نسخ إيميل العميل الأول وتجميد الخانة تماماً لباقي الركاب
+                if (currentPaxIndex > 1 && sessionData.allTravelers[0]) {
+                    const primaryEmail = sessionData.allTravelers[0].email || "";
+                    document.getElementById('email').value = primaryEmail;
+                    document.getElementById('confirmEmail').value = primaryEmail;
+                    
+                    // تجميد الحقلين كلياً لمنع التعديل
+                    document.getElementById('email').readOnly = true;
+                    document.getElementById('confirmEmail').readOnly = true;
+                } else {
+                    document.getElementById('email').value = "";
+                    document.getElementById('confirmEmail').value = "";
+                }
+            }
+        }
+
+        function setUploadSuccess(boxId, text) {
+            const box = document.getElementById(boxId);
+            if (box) {
+                box.className = "upload-box upload-success";
+                box.querySelector('p').innerText = text;
+                box.querySelector('i').className = "fas fa-check-circle text-2xl mb-2 text-green-500";
+            }
+        }
+
+        function resetUploadBox(id, iconClass, text) {
+            const box = document.getElementById(id);
+            if (box) {
+                box.className = "upload-box";
+                box.querySelector('i').className = iconClass;
+                box.querySelector('p').innerText = text;
+            }
+        }
+
         async function uploadToImgBB(file) {
-            const apiKey = "a65e68bc2764da1018222e33a3d8d795"; // مفتاح الـ API الخاص بحمزة
+            const apiKey = "a65e68bc2764da1018222e33a3d8d795"; 
             const formData = new FormData();
             formData.append("image", file);
 
@@ -276,7 +375,7 @@
 
             const data = await response.json();
             if (data.success) {
-                return data.data.url; // يعيد الرابط المباشر للصورة بنجاح
+                return data.data.url;
             } else {
                 throw new Error("Échec du téléversement ImgBB");
             }
@@ -295,7 +394,6 @@
                     box.querySelector('i').className = "fas fa-spinner fa-spin text-2xl mb-2 text-blue-500";
 
                     try {
-                        // استخدام نظام الرفع الجديد المستقر والمجاني
                         const downloadURL = await uploadToImgBB(file);
 
                         if (boxId === 'box-pass') {
@@ -304,9 +402,7 @@
                             currentPhotoUrl = downloadURL;
                         }
 
-                        box.className = "upload-box upload-success";
-                        box.querySelector('p').innerText = "Fichier validé ✔";
-                        box.querySelector('i').className = "fas fa-check-circle text-2xl mb-2 text-green-500";
+                        setUploadSuccess(boxId, "Fichier validé ✔");
                     } catch (error) {
                         console.error("Error uploading file: ", error);
                         box.className = "upload-box upload-error";
@@ -353,6 +449,7 @@
                 nom: document.getElementById('lastName').value.toUpperCase(),
                 prenom: document.getElementById('firstName').value.toUpperCase(),
                 email: email,
+                phone: document.getElementById('phoneNumber').value, 
                 birthDate: document.getElementById('birthDate').value,
                 gender: document.getElementById('gender').value,
                 passport: document.getElementById('passportNum').value.toUpperCase(),
@@ -370,11 +467,17 @@
                 sessionData.allTravelers.push(travelerData);
             }
 
+            localStorage.setItem('visaBooking', JSON.stringify(sessionData));
+
+            if (editId) {
+                window.location.href = "visa-review.html";
+                return;
+            }
+
             if (currentPaxIndex < totalPax) {
                 currentPaxIndex++;
                 prepareNextForm();
             } else {
-                localStorage.setItem('visaBooking', JSON.stringify(sessionData));
                 window.location.href = "visa-review.html";
             }
         }
@@ -384,17 +487,7 @@
             currentPhotoUrl = "";
 
             window.updateTitle();
-            document.getElementById('visaForm').reset();
-            
-            const resetBox = (id, iconClass, text) => {
-                const box = document.getElementById(id);
-                box.className = "upload-box";
-                box.querySelector('i').className = iconClass;
-                box.querySelector('p').innerText = text;
-            };
-            
-            resetBox('box-pass', "fas fa-id-card text-2xl text-gray-300 mb-2", "Scan du Passeport *");
-            resetBox('box-photo', "fas fa-camera text-2xl text-gray-300 mb-2", "Photo d'identité *");
+            loadTravelerData(); 
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
